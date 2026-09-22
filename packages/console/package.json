@@ -1,6 +1,6 @@
 {
   "name": "@tsln/console",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "The Max console as a Console API object for [v8] scripts, with an install() that makes it the global console for bundled packages",
   "license": "MIT",
   "author": "Mateo Murphy",

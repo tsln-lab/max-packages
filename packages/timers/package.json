@@ -1,6 +1,6 @@
 {
   "name": "@tsln/timers",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "setTimeout, setInterval and their clear counterparts for Max [v8] scripts, built on Task, with an install() that makes them globals for bundled packages",
   "license": "MIT",
   "author": "Mateo Murphy",
