@@ -5,7 +5,7 @@ with its own `package.json`, README and tests. The root holds the shared tooling
 
 ```sh
 pnpm install
-pnpm typecheck     # type-check every package (its declarations and its type-level tests)
+pnpm typecheck     # build, then type-check every package (its declarations and its type-level tests)
 pnpm build         # build the packages that ship code (dist/ is not committed)
 pnpm lint          # biome
 pnpm format        # biome, writing fixes
@@ -36,7 +36,8 @@ exception is `max-api-types`, which is for `[node.script]` and is checked agains
 `template-node/` on request) into a new project. Files npm would strip or biome would object to
 are stored under placeholder names (`_gitignore`, `_package.json`, `_biome.jsonc`) and renamed on
 copy. Its `typecheck` compiles both templates' sample scripts against the workspace packages, so
-a change to a package that breaks the template fails here first, and the generated project pins
+a change to a package that breaks the template fails here first. That check needs the runtime
+packages' `dist/` declarations, which is why `pnpm typecheck` builds first. The generated project pins
 the package versions from this package's own dev dependencies, which pnpm rewrites from
 `workspace:^` to real ranges on publish.
 
