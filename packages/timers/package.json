@@ -1,0 +1,48 @@
+{
+  "name": "@tsln/timers",
+  "version": "0.0.0",
+  "description": "setTimeout, setInterval and their clear counterparts for Max [v8] scripts, built on Task, with an install() that makes them globals for bundled packages",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/timers"
+  },
+  "keywords": [
+    "max",
+    "msp",
+    "max-msp",
+    "max-for-live",
+    "v8",
+    "settimeout",
+    "setinterval",
+    "timers",
+    "typescript"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --format=cjs --platform=neutral --target=es2022 --outfile=dist/index.js --log-level=warning",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node tests/timers.test.cjs",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@tsln/max-types": "workspace:^"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "7.0.2"
+  }
+}

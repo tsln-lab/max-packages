@@ -1,0 +1,47 @@
+{
+  "name": "@tsln/console",
+  "version": "0.0.0",
+  "description": "The Max console as a Console API object for [v8] scripts, with an install() that makes it the global console for bundled packages",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/console"
+  },
+  "keywords": [
+    "max",
+    "msp",
+    "max-msp",
+    "max-for-live",
+    "v8",
+    "console",
+    "logging",
+    "typescript"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --format=cjs --platform=neutral --target=es2022 --outfile=dist/index.js --log-level=warning",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node tests/console.test.cjs",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@tsln/max-types": "workspace:^"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "7.0.2"
+  }
+}

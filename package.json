@@ -11,7 +11,7 @@
     "typecheck": "pnpm -r run typecheck",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "test": "pnpm lint && pnpm typecheck && pnpm build",
+    "test": "pnpm lint && pnpm typecheck && pnpm build && pnpm -r run test",
     "generate:lom": "node scripts/generate-lom.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",

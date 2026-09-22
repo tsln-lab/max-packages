@@ -8,6 +8,8 @@ TypeScript.
 | [`@tsln/max-types`](packages/max-types) | Ambient type declarations for the Max 9 JavaScript API |
 | [`@tsln/lom-types`](packages/lom-types) | Ambient type declarations for the Live Object Model, generated from the reference |
 | [`@tsln/live-object`](packages/live-object) | `LiveObject`, a typed wrapper around `LiveAPI` |
+| [`@tsln/console`](packages/console) | The Max console as a Console API object, installable as the global `console` |
+| [`@tsln/timers`](packages/timers) | `setTimeout` and `setInterval` built on `Task`, installable as globals |
 | [`@tsln/max-api-types`](packages/max-api-types) | Ambient type declarations for the `max-api` module of `[node.script]` (Node for Max) |
 
 ## Using the `[v8]` and `[node.script]` types in one project

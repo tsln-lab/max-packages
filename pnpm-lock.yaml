@@ -176,6 +176,19 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  packages/console:
+    dependencies:
+      '@tsln/max-types':
+        specifier: workspace:^
+        version: link:../max-types
+    devDependencies:
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
   packages/live-object:
     dependencies:
       '@tsln/lom-types':
@@ -209,6 +222,19 @@ importers:
 
   packages/max-types:
     devDependencies:
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/timers:
+    dependencies:
+      '@tsln/max-types':
+        specifier: workspace:^
+        version: link:../max-types
+    devDependencies:
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       typescript:
         specifier: 7.0.2
         version: 7.0.2
