@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    // Mirror the environment a consuming script is compiled in: modern V8, no DOM, no Node.
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    // `import x = require()` / `export =` stay as require()/module.exports, which is what
+    // Max's require() loads
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    // The source references these with /// <reference types>, so they are carried into
+    // the emitted declarations and reach consumers that import the package
+    "types": [],
+    "strict": true,
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "include": ["src", "tests"]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@tsln/lom-types",
+  "version": "0.0.0",
+  "description": "Type declarations for the Ableton Live Object Model, as seen through Max for Live's LiveAPI",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/lom-types"
+  },
+  "keywords": [
+    "ableton",
+    "live",
+    "max-for-live",
+    "lom",
+    "live-object-model",
+    "liveapi",
+    "typescript",
+    "types"
+  ],
+  "types": "./index.d.ts",
+  "files": [
+    "*.d.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

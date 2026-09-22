@@ -6,15 +6,19 @@ TypeScript.
 | Package | Contents |
 | --- | --- |
 | [`@tsln/max-types`](packages/max-types) | Ambient type declarations for the Max 9 JavaScript API |
+| [`@tsln/lom-types`](packages/lom-types) | Ambient type declarations for the Live Object Model, generated from the reference |
+| [`@tsln/live-object`](packages/live-object) | `LiveObject`, a typed wrapper around `LiveAPI` |
 
 ## Working on it
 
 ```sh
 pnpm install
 pnpm typecheck     # type-check every package (its declarations and its type-level tests)
+pnpm build         # build the packages that ship code (dist/ is not committed)
 pnpm lint          # biome
 pnpm format        # biome, writing fixes
-pnpm test          # lint + typecheck
+pnpm test          # lint + typecheck + build
+pnpm generate:lom  # regenerate lom-types/index.d.ts and live-object/src/lom-meta.ts from the LOM reference
 ```
 
 ## Releasing

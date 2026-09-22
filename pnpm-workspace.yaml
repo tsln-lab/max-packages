@@ -1,2 +1,6 @@
 packages:
   - packages/*
+
+# esbuild installs its platform binary in a postinstall script
+allowBuilds:
+  esbuild: true

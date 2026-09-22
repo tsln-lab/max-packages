@@ -1,0 +1,47 @@
+{
+  "name": "@tsln/live-object",
+  "version": "0.0.0",
+  "description": "A typed wrapper around Max for Live's LiveAPI: members, value types and function arguments checked against the Live Object Model",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/live-object"
+  },
+  "keywords": [
+    "ableton",
+    "live",
+    "max-for-live",
+    "lom",
+    "liveapi",
+    "max",
+    "v8",
+    "typescript"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --format=cjs --platform=neutral --target=es2022 --outfile=dist/index.js --log-level=warning",
+    "typecheck": "tsc -p tsconfig.json",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@tsln/lom-types": "workspace:^",
+    "@tsln/max-types": "workspace:^"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "7.0.2"
+  }
+}
