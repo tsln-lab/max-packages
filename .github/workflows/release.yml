@@ -34,4 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node wrote an .npmrc that reads the token from NODE_AUTH_TOKEN, and the
+          # changesets action leaves that file alone, so the token has to arrive this way too
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
