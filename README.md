@@ -76,7 +76,17 @@ pnpm lint          # biome
 pnpm format        # biome, writing fixes
 pnpm test          # lint + typecheck + build
 pnpm generate:lom  # regenerate lom-types/index.d.ts and live-object/src/lom-meta.ts from the LOM reference
+pnpm site          # build the GitHub Pages site into site/ from this README and the packages' READMEs
 ```
+
+## Site
+
+[tsln-lab.github.io/max-packages](https://tsln-lab.github.io/max-packages/) is built from the
+Markdown in this repository: this README is the home page, and each package's README and
+changelog are pages of their own. `scripts/build-site.mjs` renders them, rewriting the links
+between the files to the pages they become, and the Pages workflow deploys the result on every
+push to `main`. Nothing on the site is written separately, so a change to a README is a change
+to the site.
 
 ## Releasing
 

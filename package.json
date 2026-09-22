@@ -13,6 +13,7 @@
     "format": "biome check --write .",
     "test": "pnpm lint && pnpm typecheck && pnpm build && pnpm -r run test",
     "generate:lom": "node scripts/generate-lom.mjs",
+    "site": "node scripts/build-site.mjs",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish"
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
     "@changesets/cli": "^3.0.3",
+    "marked": "^18.0.13",
     "typescript": "7.0.2"
   }
 }
