@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    // Max 9's [v8] object runs a modern V8, with neither a DOM nor Node
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    // Max's JavaScript API and the Live Object Model, as globals
+    "types": ["@tsln/max-types", "@tsln/lom-types"],
+
+    // `import x = require("...")` and `export =`, which the @tsln packages are written for
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    // every file is its own scope, so each script can define bang(), msg_int(), ...
+    "moduleDetection": "force",
+
+    "strict": true,
+    // Max calls handlers with `this` bound to the script's jsthis object
+    "noImplicitThis": false,
+    "skipLibCheck": true,
+    // build.mjs writes js/; tsc only checks
+    "noEmit": true
+  },
+  "include": ["src"]
+}

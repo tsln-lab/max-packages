@@ -1,0 +1,6 @@
+{
+  "name": "node-scripts",
+  "private": true,
+  "description": "Runtime dependencies of the [node.script] scripts in this folder; installed here, next to the scripts, by [n4m.setup] or npm install",
+  "dependencies": {}
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": ["src/**", "node/**", "*.mjs", "*.json", "*.jsonc", "!js", "!node/*.js"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always"
+    }
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "noUnusedImports": "error",
+        // Max calls a script's top-level functions by name, so nothing in the file references
+        // them, and the Handlers type that checks them is referenced by nothing either
+        "noUnusedVariables": "off"
+      },
+      "suspicious": {
+        // Max messages carry arbitrary atoms
+        "noExplicitAny": "off"
+      }
+    }
+  }
+}

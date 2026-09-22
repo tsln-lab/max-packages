@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    // [node.script] runs a real Node.js, so these are Node's types plus the max-api module;
+    // they can't be mixed with the [v8] globals of the root tsconfig.json
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "node16",
+    "moduleResolution": "node16",
+    "types": ["node", "@tsln/max-api-types"],
+    "strict": true,
+    "skipLibCheck": true,
+    // compiled in place: [node.script] runs a file where it finds it, and resolves require()
+    // from that file's folder, so its node_modules has to be here too
+    "rootDir": ".",
+    "outDir": "."
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}

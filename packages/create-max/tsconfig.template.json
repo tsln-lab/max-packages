@@ -1,0 +1,9 @@
+{
+  // Checks the [v8] template's sample script against the workspace packages, with the
+  // settings the generated project's tsconfig.json has.
+  "extends": "./template/tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": false
+  },
+  "include": ["template/src"]
+}

@@ -11,6 +11,21 @@ exposes to JavaScript, and small runtime libraries for the `[v8]` object.
 | [`@tsln/console`](packages/console) | The Max console as a Console API object, installable as the global `console` |
 | [`@tsln/timers`](packages/timers) | `setTimeout` and `setInterval` built on `Task`, installable as globals |
 | [`@tsln/max-api-types`](packages/max-api-types) | Ambient type declarations for the `max-api` module of `[node.script]` (Node for Max) |
+| [`@tsln/create-max`](packages/create-max) | `npm create @tsln/max`: a new project set up with the packages above |
+
+## Getting started
+
+```sh
+npm create @tsln/max my-device
+cd my-device
+npm install
+npm run watch
+```
+
+That gives a project where every `.ts` file in `src/` compiles to a script in `js/`, bundled
+with whatever it imports, so the packages below are used directly and nothing has to be copied
+to where Max can find it. The rest of this page is for adding the packages to a project of your
+own shape.
 
 ## Install
 
@@ -85,8 +100,8 @@ node/                  # [node.script] scripts
     "composite": true,
     "target": "ES2022",
     "lib": ["ES2022"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "node16",
+    "moduleResolution": "node16",
     "types": ["node", "@tsln/max-api-types"],
     "strict": true,
     "rootDir": ".",

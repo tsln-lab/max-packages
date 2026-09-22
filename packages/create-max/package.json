@@ -1,0 +1,57 @@
+{
+  "name": "@tsln/create-max",
+  "version": "0.0.0",
+  "description": "Scaffolds a TypeScript project for Max [v8] scripts, and optionally [node.script], set up with the @tsln packages",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/create-max"
+  },
+  "keywords": [
+    "max",
+    "msp",
+    "max-msp",
+    "max-for-live",
+    "v8",
+    "node-for-max",
+    "create",
+    "template",
+    "typescript"
+  ],
+  "type": "module",
+  "bin": {
+    "create-max": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "template",
+    "template-node",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.template.json && tsc -p tsconfig.template-node.json",
+    "test": "node tests/create.test.cjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@tsln/console": "workspace:^",
+    "@tsln/live-object": "workspace:^",
+    "@tsln/lom-types": "workspace:^",
+    "@tsln/max-api-types": "workspace:^",
+    "@tsln/max-types": "workspace:^",
+    "@tsln/timers": "workspace:^",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "7.0.2"
+  }
+}

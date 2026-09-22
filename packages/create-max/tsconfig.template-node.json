@@ -1,0 +1,10 @@
+{
+  // Checks the [node.script] template's sample script against the workspace packages, with
+  // the settings the generated node/tsconfig.json has.
+  "extends": "./template-node/node/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "template-node/node"
+  },
+  "include": ["template-node/node/**/*.ts"]
+}

@@ -26,6 +26,14 @@
       "semicolons": "always"
     }
   },
+  "overrides": [
+    {
+      // The scaffolder's templates are Max scripts: Max calls their top-level functions by
+      // name, so nothing references them, and the generated project turns this rule off too
+      "includes": ["packages/create-max/template/**", "packages/create-max/template-node/**"],
+      "linter": { "rules": { "correctness": { "noUnusedVariables": "off" } } }
+    }
+  ],
   "linter": {
     "rules": {
       "preset": "recommended",

@@ -47,7 +47,7 @@ layout.
 
 Max calls the functions you define at the top level of a script (`bang`, `msg_int`, `list`, ...).
 They must not be exported, so list them in a `Handlers<T>` type instead. This checks the built-in
-handlers against Max's signatures, stops them being reported as unused, and compiles to nothing:
+handlers against Max's signatures and compiles to nothing:
 
 ```ts
 function bang() {
@@ -58,11 +58,16 @@ function msg_int(value: number) {
   outlet(0, value * 2);
 }
 
-export type MaxHandlers = Handlers<{
+type MaxHandlers = Handlers<{
   bang: typeof bang;
   msg_int: typeof msg_int;
 }>;
 ```
+
+Exporting the type marks the handlers as used for a linter, and is fine when scripts are
+compiled file by file with `tsc`. In a project that bundles each script with esbuild, leave the
+`export` off: it makes the bundler treat the script as a module and add a `module.exports` line,
+which a top-level `[v8]` script can't run.
 
 ## Files
 

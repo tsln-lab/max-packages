@@ -192,6 +192,39 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  packages/create-max:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.5.14
+        version: 2.5.14
+      '@tsln/console':
+        specifier: workspace:^
+        version: link:../console
+      '@tsln/live-object':
+        specifier: workspace:^
+        version: link:../live-object
+      '@tsln/lom-types':
+        specifier: workspace:^
+        version: link:../lom-types
+      '@tsln/max-api-types':
+        specifier: workspace:^
+        version: link:../max-api-types
+      '@tsln/max-types':
+        specifier: workspace:^
+        version: link:../max-types
+      '@tsln/timers':
+        specifier: workspace:^
+        version: link:../timers
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
   packages/live-object:
     dependencies:
       '@tsln/lom-types':

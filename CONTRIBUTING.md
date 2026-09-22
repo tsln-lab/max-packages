@@ -32,6 +32,14 @@ There are two kinds of package:
 The type packages assume a `[v8]` environment: `lib: ["ES2022"]`, no DOM and no Node types. The
 exception is `max-api-types`, which is for `[node.script]` and is checked against `@types/node`.
 
+`create-max` is the odd one out: a dependency-free Node script that copies `template/` (and
+`template-node/` on request) into a new project. Files npm would strip or biome would object to
+are stored under placeholder names (`_gitignore`, `_package.json`, `_biome.jsonc`) and renamed on
+copy. Its `typecheck` compiles both templates' sample scripts against the workspace packages, so
+a change to a package that breaks the template fails here first, and the generated project pins
+the package versions from this package's own dev dependencies, which pnpm rewrites from
+`workspace:^` to real ranges on publish.
+
 ### Adding a package
 
 1. Copy the layout of the nearest existing package, keep the `@tsln/` scope, and add a row to
