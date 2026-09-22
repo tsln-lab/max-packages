@@ -1,6 +1,6 @@
 {
   "name": "@tsln/lom-types",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Type declarations for the Ableton Live Object Model, as seen through Max for Live's LiveAPI",
   "license": "MIT",
   "author": "Mateo Murphy",
