@@ -14,7 +14,7 @@
     "test": "pnpm lint && pnpm typecheck && pnpm build",
     "generate:lom": "node scripts/generate-lom.mjs",
     "changeset": "changeset",
-    "version": "changeset version",
+    "version-packages": "changeset version",
     "release": "changeset publish"
   },
   "devDependencies": {

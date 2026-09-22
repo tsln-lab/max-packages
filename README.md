@@ -31,7 +31,7 @@ Versions and changelogs are managed with [changesets](https://github.com/changes
 3. Merging that PR bumps the versions, updates each package's `CHANGELOG.md` and publishes to npm.
 
 The workflow needs an `NPM_TOKEN` repository secret: an npm granular access token that can
-publish to the `@tsln` scope. To publish by hand instead: `pnpm version` then `pnpm release`.
+publish to the `@tsln` scope. To publish by hand instead: `pnpm changeset version` then `pnpm changeset publish` (`pnpm version` on its own is pnpm’s version-bump command, not the changesets one).
 
 ## Using a package locally before it is published
 
