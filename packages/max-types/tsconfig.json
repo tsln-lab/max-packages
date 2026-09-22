@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    // Mirror the environment a consuming script is compiled in: modern V8, no DOM, no Node.
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": [],
+    "strict": true,
+    // Max calls handlers with `this` bound to the jsthis object
+    "noImplicitThis": false,
+    // Check the declarations themselves, not just the tests
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "include": ["*.d.ts", "tests"]
+}

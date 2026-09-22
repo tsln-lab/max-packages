@@ -1,0 +1,7 @@
+# Normalise all text files to LF in the repo and in the working tree.
+* text=auto eol=lf
+
+# Max and Ableton binaries. Never touch line endings or diff as text.
+*.amxd binary
+*.wav  binary
+*.png  binary

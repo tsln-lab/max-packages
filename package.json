@@ -1,0 +1,23 @@
+{
+  "name": "max-packages",
+  "private": true,
+  "description": "Publishable packages for Max/MSP and Max for Live JavaScript development",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "pnpm lint && pnpm typecheck",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@changesets/cli": "^3.0.3",
+    "typescript": "7.0.2"
+  }
+}

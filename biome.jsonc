@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": ["packages/**", "*.json", "*.jsonc", "!pnpm-lock.yaml"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always"
+    }
+  },
+  "linter": {
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "warn"
+      },
+      "suspicious": {
+        // Max messages carry arbitrary atoms; the API takes and returns any[] by design
+        "noExplicitAny": "off",
+        // Handlers may return a number or nothing, which `number | void` states exactly
+        "noConfusingVoidType": "off",
+        // Empty interfaces are merge points that consuming projects extend
+        "noEmptyInterface": "off"
+      }
+    }
+  }
+}

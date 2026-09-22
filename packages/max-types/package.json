@@ -1,0 +1,39 @@
+{
+  "name": "@tsln/max-types",
+  "version": "0.0.0",
+  "description": "Type declarations for the Max 9 JavaScript API ([v8], [v8ui], [js], [jsui])",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/max-types"
+  },
+  "keywords": [
+    "max",
+    "msp",
+    "max-msp",
+    "max-for-live",
+    "cycling74",
+    "v8",
+    "typescript",
+    "types"
+  ],
+  "types": "./index.d.ts",
+  "files": [
+    "*.d.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}
