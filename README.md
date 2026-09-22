@@ -8,6 +8,61 @@ TypeScript.
 | [`@tsln/max-types`](packages/max-types) | Ambient type declarations for the Max 9 JavaScript API |
 | [`@tsln/lom-types`](packages/lom-types) | Ambient type declarations for the Live Object Model, generated from the reference |
 | [`@tsln/live-object`](packages/live-object) | `LiveObject`, a typed wrapper around `LiveAPI` |
+| [`@tsln/max-api-types`](packages/max-api-types) | Ambient type declarations for the `max-api` module of `[node.script]` (Node for Max) |
+
+## Using the `[v8]` and `[node.script]` types in one project
+
+`@tsln/max-types` describes the globals of `[v8]`, `[js]` and their UI variants; `@tsln/max-api-types`
+describes the `max-api` module of `[node.script]`, which is real Node.js and goes with `@types/node`.
+Both sides declare globals of the same names (`Buffer`, `File`, `XMLHttpRequest`, ...), so they
+can't share a TypeScript program. A project with both kinds of script keeps one folder per runtime,
+each with its own `tsconfig.json`, under a root config that only references them:
+
+```
+tsconfig.json          # root: references only, nothing compiled here
+src/                   # [v8] scripts, compiled to js/
+  tsconfig.json        # "types": ["@tsln/max-types", "@tsln/lom-types"]
+node/                  # [node.script] scripts
+  tsconfig.json        # "types": ["node", "@tsln/max-api-types"]
+  package.json         # the scripts' own runtime dependencies
+```
+
+```jsonc
+// tsconfig.json
+{
+  "files": [],
+  "references": [{ "path": "src" }, { "path": "node" }]
+}
+```
+
+```jsonc
+// node/tsconfig.json
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "types": ["node", "@tsln/max-api-types"],
+    "strict": true,
+    "rootDir": ".",
+    "outDir": "."
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+The `src/tsconfig.json` is an ordinary `[v8]` config with `"composite": true` added. `tsc -b`
+(or `tsc -b --watch`) builds both, and editors pick the nearest `tsconfig.json` above each file,
+so a file under `node/` sees Node's globals and a file under `src/` sees Max's.
+
+The `node/` scripts compile in place, and the folder has a `package.json` of its own, because
+`[node.script]` runs a file where it finds it and resolves `require()` from that file's directory:
+its `node_modules` has to sit beside it, installed there by `[n4m.setup]` or by hand. Code shared
+between the two runtimes has to be pure TypeScript that touches neither side's globals, included
+by each program separately.
 
 ## Working on it
 

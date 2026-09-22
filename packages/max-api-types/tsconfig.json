@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    // Mirror a [node.script] project: Node.js with its types, and CommonJS require()
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "include": ["*.d.ts", "tests"]
+}
