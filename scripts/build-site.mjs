@@ -116,14 +116,32 @@ body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
-header { border-bottom: 1px solid var(--line); }
-header nav, main, footer { max-width: 46rem; margin: 0 auto; padding: 0 16px; }
-header nav { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline; padding-top: 12px; padding-bottom: 12px; }
-header nav a { color: var(--fg); text-decoration: none; }
-header nav a:hover, header nav a[aria-current] { text-decoration: underline; }
-header nav .site { font-weight: 600; margin-right: 8px; }
+.layout {
+  display: grid; grid-template-columns: 13rem minmax(0, 46rem); gap: 0 48px;
+  max-width: 66rem; margin: 0 auto; padding: 0 16px;
+}
+aside { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 24px 0; }
+aside .site { display: block; font-weight: 600; font-size: 1.1rem; color: var(--fg); text-decoration: none; margin-bottom: 20px; }
+aside .group { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; margin: 16px 0 4px; }
+aside ul { list-style: none; margin: 0; padding: 0; }
+aside li a {
+  display: block; padding: 3px 10px; margin-left: -10px; border-radius: 4px;
+  color: var(--fg); text-decoration: none;
+}
+aside li a:hover { background: var(--code); }
+aside li a[aria-current] { background: var(--code); font-weight: 600; }
 main { padding-top: 24px; padding-bottom: 48px; }
-footer { color: var(--muted); font-size: 0.875rem; padding-bottom: 32px; }
+footer { grid-column: 2; color: var(--muted); font-size: 0.875rem; padding-bottom: 32px; }
+@media (max-width: 48rem) {
+  .layout { display: block; }
+  aside { position: static; max-height: none; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  aside .site { display: inline-block; margin: 0 16px 0 0; }
+  aside .group { display: none; }
+  aside ul { display: inline; }
+  aside li { display: inline-block; margin-right: 4px; }
+  aside li a { display: inline-block; margin-left: 0; padding: 3px 8px; }
+  main { padding-top: 16px; }
+}
 a { color: var(--link); }
 h1 { font-size: 1.75rem; line-height: 1.25; margin: 0 0 0.5rem; }
 h2 { font-size: 1.35rem; margin-top: 2rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--line); }
@@ -142,13 +160,26 @@ blockquote { margin: 0; padding-left: 1rem; border-left: 3px solid var(--line); 
 `;
 
 function shell({ title, current, meta, body }) {
+  const item = (href, label, active) =>
+    `<li><a href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a></li>`;
   const nav = [
-    `<a class="site" href="index.html"${current === "index.html" ? ' aria-current="page"' : ""}>${SITE_TITLE}</a>`,
-    ...packages.map(
-      (pkg) =>
-        `<a href="${pkg.dir}.html"${current === `${pkg.dir}.html` || current === `${pkg.dir}-changelog.html` ? ' aria-current="page"' : ""}>${pkg.dir}</a>`,
+    `<a class="site" href="index.html">${SITE_TITLE}</a>`,
+    `<p class="group">Packages</p>`,
+    "<ul>",
+    ...packages.map((pkg) =>
+      item(
+        `${pkg.dir}.html`,
+        pkg.dir,
+        current === `${pkg.dir}.html` || current === `${pkg.dir}-changelog.html`,
+      ),
     ),
-    `<a href="contributing.html"${current === "contributing.html" ? ' aria-current="page"' : ""}>contributing</a>`,
+    "</ul>",
+    `<p class="group">Repository</p>`,
+    "<ul>",
+    item("index.html", "Overview", current === "index.html"),
+    item("contributing.html", "Contributing", current === "contributing.html"),
+    item(REPO, "GitHub", false),
+    "</ul>",
   ].join("\n      ");
 
   return `<!doctype html>
@@ -160,17 +191,19 @@ function shell({ title, current, meta, body }) {
   <style>${CSS}</style>
 </head>
 <body>
-  <header>
-    <nav>
+  <div class="layout">
+    <aside>
+      <nav>
       ${nav}
-    </nav>
-  </header>
-  <main>
+      </nav>
+    </aside>
+    <main>
 ${meta ? `    <p class="meta">${meta}</p>\n` : ""}${body}
-  </main>
-  <footer>
-    Built from the Markdown in <a href="${REPO}">${REPO.replace("https://", "")}</a>.
-  </footer>
+    </main>
+    <footer>
+      Built from the Markdown in <a href="${REPO}">${REPO.replace("https://", "")}</a>.
+    </footer>
+  </div>
 </body>
 </html>
 `;
