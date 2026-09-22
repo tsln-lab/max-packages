@@ -1,6 +1,6 @@
 {
   "name": "@tsln/max-types",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Type declarations for the Max 9 JavaScript API ([v8], [v8ui], [js], [jsui])",
   "license": "MIT",
   "author": "Mateo Murphy",
