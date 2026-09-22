@@ -1,6 +1,6 @@
 // Builds the GitHub Pages site into site/ from the Markdown already in the repository:
-// the root README becomes the home page and each package's README its own page, with a
-// changelog page beside it when the package has one.
+// the root README becomes the home page, CONTRIBUTING.md the contributing page, and each
+// package's README its own page, with a changelog page beside it when the package has one.
 //
 //   node scripts/build-site.mjs
 //
@@ -38,7 +38,10 @@ const packages = fs
   .sort((a, b) => a.dir.localeCompare(b.dir));
 
 // Source file -> page it becomes, for rewriting links between them.
-const pages = new Map([[path.join(ROOT, "README.md"), "index.html"]]);
+const pages = new Map([
+  [path.join(ROOT, "README.md"), "index.html"],
+  [path.join(ROOT, "CONTRIBUTING.md"), "contributing.html"],
+]);
 for (const pkg of packages) {
   pages.set(pkg.readme, `${pkg.dir}.html`);
   pages.set(path.join(ROOT, "packages", pkg.dir), `${pkg.dir}.html`);
@@ -145,6 +148,7 @@ function shell({ title, current, meta, body }) {
       (pkg) =>
         `<a href="${pkg.dir}.html"${current === `${pkg.dir}.html` || current === `${pkg.dir}-changelog.html` ? ' aria-current="page"' : ""}>${pkg.dir}</a>`,
     ),
+    `<a href="contributing.html"${current === "contributing.html" ? ' aria-current="page"' : ""}>contributing</a>`,
   ].join("\n      ");
 
   return `<!doctype html>
@@ -202,6 +206,15 @@ write(
     title: SITE_TITLE,
     current: "index.html",
     body: render(path.join(ROOT, "README.md")),
+  }),
+);
+
+write(
+  "contributing.html",
+  shell({
+    title: `Contributing · ${SITE_TITLE}`,
+    current: "contributing.html",
+    body: render(path.join(ROOT, "CONTRIBUTING.md")),
   }),
 );
 

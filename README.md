@@ -1,7 +1,7 @@
 # max-packages
 
-A pnpm monorepo of publishable packages for writing Max/MSP and Max for Live scripts in
-TypeScript.
+Packages for writing Max/MSP and Max for Live scripts in TypeScript: types for the APIs Max
+exposes to JavaScript, and small runtime libraries for the `[v8]` object.
 
 | Package | Contents |
 | --- | --- |
@@ -11,6 +11,47 @@ TypeScript.
 | [`@tsln/console`](packages/console) | The Max console as a Console API object, installable as the global `console` |
 | [`@tsln/timers`](packages/timers) | `setTimeout` and `setInterval` built on `Task`, installable as globals |
 | [`@tsln/max-api-types`](packages/max-api-types) | Ambient type declarations for the `max-api` module of `[node.script]` (Node for Max) |
+
+## Install
+
+Each package's README says how to use it; the shape is the same across them:
+
+- **Type packages** are ambient declarations. Install them as dev dependencies and list them in
+  `types` in `tsconfig.json`; nothing is imported.
+
+  ```sh
+  npm install --save-dev @tsln/max-types @tsln/lom-types
+  ```
+
+  ```jsonc
+  {
+    "compilerOptions": {
+      "target": "ES2022",
+      "lib": ["ES2022"],
+      "types": ["@tsln/max-types", "@tsln/lom-types"]
+    }
+  }
+  ```
+
+- **Runtime packages** ship one CommonJS file each in `dist/`. Max's `require()` searches Max's
+  file path and knows nothing of `node_modules`, so that file has to be copied or bundled to
+  somewhere Max can find it, with a declaration file next to it that re-exports the package's
+  types:
+
+  ```ts
+  // src/vendor/live-object.d.ts
+  import LiveObject = require("@tsln/live-object");
+  export = LiveObject;
+  ```
+
+  ```ts
+  import LiveObject = require("./vendor/live-object");
+  ```
+
+  Importing a runtime package brings in the type packages it depends on.
+
+The `[v8]` packages assume `lib: ["ES2022"]` with no DOM or Node types: `File`, `Buffer`,
+`XMLHttpRequest` and `PointerEvent` share names with DOM and Node globals.
 
 ## Using the `[v8]` and `[node.script]` types in one project
 
@@ -66,48 +107,7 @@ its `node_modules` has to sit beside it, installed there by `[n4m.setup]` or by 
 between the two runtimes has to be pure TypeScript that touches neither side's globals, included
 by each program separately.
 
-## Working on it
+## Contributing
 
-```sh
-pnpm install
-pnpm typecheck     # type-check every package (its declarations and its type-level tests)
-pnpm build         # build the packages that ship code (dist/ is not committed)
-pnpm lint          # biome
-pnpm format        # biome, writing fixes
-pnpm test          # lint + typecheck + build
-pnpm generate:lom  # regenerate lom-types/index.d.ts and live-object/src/lom-meta.ts from the LOM reference
-pnpm site          # build the GitHub Pages site into site/ from this README and the packages' READMEs
-```
-
-## Site
-
-[tsln-lab.github.io/max-packages](https://tsln-lab.github.io/max-packages/) is built from the
-Markdown in this repository: this README is the home page, and each package's README and
-changelog are pages of their own. `scripts/build-site.mjs` renders them, rewriting the links
-between the files to the pages they become, and the Pages workflow deploys the result on every
-push to `main`. Nothing on the site is written separately, so a change to a README is a change
-to the site.
-
-## Releasing
-
-Versions and changelogs are managed with [changesets](https://github.com/changesets/changesets).
-
-1. Make a change, then run `pnpm changeset` and pick the packages and bump level. Commit the
-   file it writes to `.changeset/`.
-2. When that lands on `main`, the release workflow opens (or updates) a "Version Packages" PR.
-3. Merging that PR bumps the versions, updates each package's `CHANGELOG.md` and publishes to npm.
-
-The workflow publishes with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers):
-each package on npmjs.com lists this repository and `release.yml` as a trusted publisher, so no
-npm token is stored anywhere. A new package has to be published once by hand before it can be
-set up that way. To publish by hand: `pnpm changeset version` then `pnpm changeset publish`
-(`pnpm version` on its own is pnpm’s version-bump command, not the changesets one).
-
-## Using a package locally before it is published
-
-From a consuming project, install the package directory as a file dependency; npm links it, so
-edits here are picked up on the next type-check:
-
-```sh
-npm install --save-dev ../max-packages/packages/max-types
-```
+How the repository is built, tested and released, and how to add a package, is in
+[CONTRIBUTING.md](CONTRIBUTING.md).
