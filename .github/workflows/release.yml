@@ -9,6 +9,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   contents: write
   pull-requests: write
+  # npm trusted publishing: the job proves its identity to npm with an OIDC token
   id-token: write
 
 jobs:
@@ -21,20 +22,16 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       # Opens or updates a "Version Packages" PR while changesets are pending, and
-      # publishes to npm once that PR is merged. Needs an NPM_TOKEN repository secret
-      # (an npm granular access token with publish rights to the @tsln scope).
+      # publishes to npm once that PR is merged. Each package on npmjs.com lists this
+      # repository and workflow file as a trusted publisher, so no npm token is needed;
+      # an .npmrc with a token (setup-node's registry-url writes one) would get in the way.
       - uses: changesets/action@v1
         with:
           version: pnpm changeset version
           publish: pnpm changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # setup-node wrote an .npmrc that reads the token from NODE_AUTH_TOKEN, and the
-          # changesets action leaves that file alone, so the token has to arrive this way too
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
