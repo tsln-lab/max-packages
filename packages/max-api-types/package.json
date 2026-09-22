@@ -1,6 +1,6 @@
 {
   "name": "@tsln/max-api-types",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Type declarations for the max-api module of Max's [node.script] object (Node for Max)",
   "license": "MIT",
   "author": "Mateo Murphy",
