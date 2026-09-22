@@ -5,10 +5,17 @@ Node.js process it runs (Node for Max), transcribed from the
 [reference](https://docs.cycling74.com/apiref/nodeformax/).
 
 This is the Node.js side of Max. For scripts in `[v8]`, `[js]` and their UI variants see
-[`@tsln/max-types`](../max-types); the two declare globals of the same names and can't be
-loaded together. A project with both kinds of script gives each its own folder and
-`tsconfig.json`; the [repository README](../../README.md#using-the-v8-and-nodescript-types-in-one-project)
-shows the layout.
+[`@tsln/max-types`](../max-types), which declares that engine's globals (`post`, `outlet`,
+`Patcher`, `Task`, ...). None of those exist in `[node.script]`, where Max is reached through
+the module instead, so this package declares nothing global: just `max-api` and the value of
+`process.env.MAX_ENV`.
+
+The two packages stay separate because `@tsln/max-types` can't share a TypeScript program with
+`@types/node`, which a `[node.script]` project needs: both declare `Buffer` and `File` as
+globals, as unrelated types, and TypeScript reports them as duplicate identifiers. A project with
+both kinds of script gives each its own folder and `tsconfig.json`; the
+[repository README](../../README.md#using-the-v8-and-nodescript-types-in-one-project) shows the
+layout.
 
 ## Install
 

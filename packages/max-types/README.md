@@ -29,6 +29,20 @@ The declarations are global, so list the package in `types` rather than importin
 Compile with `lib: ["ES2022"]` and no DOM or Node types: `File`, `Buffer`, `XMLHttpRequest`,
 `ProgressEvent` and `PointerEvent` share names with DOM and Node globals.
 
+## Not for `[node.script]`
+
+`[node.script]` runs a real Node.js process, and its API is the `max-api` module rather than
+these globals: none of `post`, `outlet`, `inlets` or the classes here exist there, and Node's own
+globals do. That side is covered by [`@tsln/max-api-types`](../max-api-types), which declares
+the module and nothing global.
+
+The two packages stay separate because this one can't share a TypeScript program with
+`@types/node`, which a `[node.script]` project needs: both declare `Buffer` and `File` as
+globals, as unrelated types, and TypeScript reports them as duplicate identifiers. A project with
+both kinds of script gives each its own folder and `tsconfig.json`; the
+[repository README](../../README.md#using-the-v8-and-nodescript-types-in-one-project) shows the
+layout.
+
 ## Handlers
 
 Max calls the functions you define at the top level of a script (`bang`, `msg_int`, `list`, ...).
