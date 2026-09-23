@@ -11,6 +11,7 @@ exposes to JavaScript, and small runtime libraries for the `[v8]` object.
 | [`@tsln/console`](packages/console) | The Max console as a Console API object, installable as the global `console` |
 | [`@tsln/timers`](packages/timers) | `setTimeout` and `setInterval` built on `Task`, installable as globals |
 | [`@tsln/max-api-types`](packages/max-api-types) | Ambient type declarations for the `max-api` module of `[node.script]` (Node for Max) |
+| [`@tsln/amxd`](packages/amxd) | Reads and writes `.amxd` device files from Node: the container and the patcher JSON |
 | [`@tsln/create-max`](packages/create-max) | `npm create @tsln/max`: a new project set up with the packages above |
 
 ## Getting started
