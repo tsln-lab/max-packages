@@ -1,0 +1,50 @@
+{
+  "name": "@tsln/amxd",
+  "version": "0.0.0",
+  "description": "Reads and writes Max for Live .amxd device files: the ampf header and the patcher JSON inside it",
+  "license": "MIT",
+  "author": "Mateo Murphy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsln-lab/max-packages.git",
+    "directory": "packages/amxd"
+  },
+  "keywords": [
+    "max",
+    "msp",
+    "max-msp",
+    "max-for-live",
+    "ableton",
+    "amxd",
+    "ampf",
+    "maxpat",
+    "parser",
+    "typescript"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && esbuild src/index.ts --bundle --format=cjs --platform=node --target=node20 --outfile=dist/index.js --log-level=warning",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node tests/amxd.test.cjs",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "7.0.2"
+  }
+}

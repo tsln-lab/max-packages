@@ -179,6 +179,18 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
+  packages/amxd:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
   packages/console:
     dependencies:
       '@tsln/max-types':

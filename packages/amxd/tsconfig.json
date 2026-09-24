@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    // A Node library, unlike the [v8] packages: Node's types are available, and the build
+    // bundles to CommonJS so both require() and import work
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "include": ["src"]
+}

@@ -178,16 +178,20 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
     return this.api.info;
   }
 
-  /** Matches the track portion of a path; used by `track`. */
-  track_regexp = /(live_set\stracks\s\d+)/;
+  /**
+   * Matches the track portion of a path; used by `track`. A regular track, a return track or
+   * the master track: `live_set tracks 2`, `live_set return_tracks 0`, `live_set master_track`.
+   */
+  track_regexp = /^live_set\s(?:tracks\s\d+|return_tracks\s\d+|master_track)/;
 
   /**
-   * The track containing this object, found from its path, e.g. `live_set tracks 0`
-   * for `live_set tracks 0 devices 1`. Undefined for objects not under `live_set tracks N`
-   * (including return tracks and the master track).
+   * The track containing this object, found from its path: `live_set tracks 0` for
+   * `live_set tracks 0 devices 1`, and likewise a return track (`live_set return_tracks 0`)
+   * or the master track (`live_set master_track`). Undefined for an object that isn't on a
+   * track, such as a scene, or when the Live API isn't available.
    */
   get track(): LiveObject<"Track"> | undefined {
-    const track_path = this.path.match(this.track_regexp);
+    const track_path = this.api.unquotedpath.match(this.track_regexp);
 
     return track_path ? new LiveObject<"Track">(track_path[0]) : undefined;
   }
