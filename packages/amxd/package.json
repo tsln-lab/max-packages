@@ -1,6 +1,6 @@
 {
   "name": "@tsln/amxd",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Reads and writes Max for Live .amxd device files: the ampf header and the patcher JSON inside it",
   "license": "MIT",
   "author": "Mateo Murphy",
