@@ -1,6 +1,6 @@
 {
   "name": "@tsln/live-object",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A typed wrapper around Max for Live's LiveAPI: members, value types and function arguments checked against the Live Object Model",
   "license": "MIT",
   "author": "Mateo Murphy",

@@ -1,6 +1,6 @@
 {
   "name": "@tsln/create-max",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Scaffolds a TypeScript project for Max [v8] scripts, and optionally [node.script], set up with the @tsln packages",
   "license": "MIT",
   "author": "Mateo Murphy",
