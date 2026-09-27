@@ -9,25 +9,38 @@ const nodeTimers = {
   clearTimeout: globalThis.clearTimeout,
 };
 let live = 0; // Tasks not yet freed, to check that nothing leaks
+// Tasks freed from inside their own callback. Max still uses a Task's function when the
+// callback returns, and warns "method removeproperty called on invalid object" if it has gone.
+let freedWhileRunning = 0;
 
 globalThis.Task = class {
   constructor(fn) {
     this.fn = fn;
     this.handle = null;
+    this.calling = false;
     live++;
   }
   schedule(ms) {
     this.cancel();
     this.handle = nodeTimers.setTimeout(() => {
       this.handle = null;
-      this.fn();
+      this.call();
     }, ms);
+  }
+  call() {
+    this.calling = true;
+    try {
+      this.fn();
+    } finally {
+      this.calling = false;
+    }
   }
   cancel() {
     if (this.handle) nodeTimers.clearTimeout(this.handle);
     this.handle = null;
   }
   freepeer() {
+    if (this.calling) freedWhileRunning++;
     this.cancel();
     live--;
   }
@@ -37,15 +50,17 @@ const timers = require(path.join(__dirname, "..", "dist", "index.js"));
 const wait = (ms) => new Promise((resolve) => nodeTimers.setTimeout(resolve, ms));
 
 (async () => {
-  // setTimeout fires once, with its arguments, and frees its Task
+  // setTimeout fires once, with its arguments. Its Task can't be freed from inside its own
+  // callback, so it is left for the next call to free.
   const calls = [];
   const id = timers.setTimeout((a, b) => calls.push([a, b]), 10, "x", { y: 1 });
   assert.equal(typeof id, "number");
   await wait(30);
   assert.deepEqual(calls, [["x", { y: 1 }]]);
-  assert.equal(live, 0);
+  assert.equal(live, 1);
 
-  // clearTimeout stops one that has not fired, and clearing again is harmless
+  // clearTimeout stops one that has not fired, and clearing again is harmless. The Task left
+  // from before is freed on the way.
   const id2 = timers.setTimeout(() => calls.push("never"), 10);
   timers.clearTimeout(id2);
   timers.clearTimeout(id2);
@@ -57,8 +72,8 @@ const wait = (ms) => new Promise((resolve) => nodeTimers.setTimeout(resolve, ms)
   // ids are distinct and shared between both kinds
   assert.notEqual(id, id2);
 
-  // a timeout whose callback throws still frees its Task: the Task's function is run by
-  // hand here, since the stub would let the throw escape into Node's event loop
+  // a timeout whose callback throws still has its Task freed, by the next call: the Task is
+  // run by hand here, since the stub would let the throw escape into Node's event loop
   const handles = [];
   const scheduled = globalThis.Task.prototype.schedule;
   globalThis.Task.prototype.schedule = function (ms) {
@@ -71,10 +86,11 @@ const wait = (ms) => new Promise((resolve) => nodeTimers.setTimeout(resolve, ms)
   globalThis.Task.prototype.schedule = scheduled;
   const thrower = handles.pop();
   thrower.cancel();
-  assert.throws(() => thrower.fn(), /boom/);
-  assert.equal(live, 0);
+  assert.throws(() => thrower.call(), /boom/);
+  assert.equal(live, 1);
 
-  // setInterval repeats, and the callback can clear its own interval
+  // setInterval repeats, and the callback can clear its own interval, whose Task is then
+  // left for the next call like a timeout's
   let ticks = 0;
   const id3 = timers.setInterval(() => {
     ticks++;
@@ -82,7 +98,7 @@ const wait = (ms) => new Promise((resolve) => nodeTimers.setTimeout(resolve, ms)
   }, 5);
   await wait(60);
   assert.equal(ticks, 3);
-  assert.equal(live, 0);
+  assert.equal(live, 1);
 
   // an interval of 0 still runs at least a millisecond apart
   let fast = 0;
@@ -90,6 +106,8 @@ const wait = (ms) => new Promise((resolve) => nodeTimers.setTimeout(resolve, ms)
   await wait(20);
   timers.clearTimeout(id4); // clearTimeout clears either kind, as in a browser
   assert.ok(fast > 0 && fast < 30, `interval of 0 ran ${fast} times in 20 ms`);
+  // cleared from outside its callback, so freed at once
+  assert.equal(live, 0);
 
   // clearAll stops everything still waiting
   timers.setTimeout(() => calls.push("never"), 10);
@@ -98,6 +116,20 @@ const wait = (ms) => new Promise((resolve) => nodeTimers.setTimeout(resolve, ms)
   await wait(30);
   assert.equal(calls.length, 1);
   assert.equal(live, 0);
+
+  // a callback can clear another timer, whose Task is freed at once; its own is left
+  const other = timers.setTimeout(() => calls.push("never"), 50);
+  timers.setTimeout(() => timers.clearTimeout(other), 5);
+  await wait(80);
+  assert.equal(calls.length, 1);
+  assert.equal(live, 1);
+
+  // clearAll frees what the timers that ran left behind
+  timers.clearAll();
+  assert.equal(live, 0);
+
+  // and no Task was ever freed from inside its own callback
+  assert.equal(freedWhileRunning, 0);
 
   // install adds only what is missing: Node has its own timers, so nothing changes
   timers.install();

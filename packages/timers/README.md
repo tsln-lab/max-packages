@@ -17,6 +17,11 @@ function notifydeleted() {
 }
 ```
 
+Max does not collect a Task on its own, so each one is freed when its timer is done with. A Task
+can't be freed from inside its own callback, though (Max warns that "method removeproperty [was]
+called on invalid object"), so the Task of a timeout that has run, or of an interval that cleared
+itself, is freed by the next call to any of these functions. `clearAll()` frees whatever is left.
+
 They behave as they do anywhere else, give or take Max's scheduler: a Task runs in the
 low-priority queue, so a delay is a minimum rather than a promise, and 0 means "next tick".
 Both kinds share their ids, so `clearTimeout` clears an interval too, as in a browser. Extra
