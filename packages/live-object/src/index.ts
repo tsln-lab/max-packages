@@ -17,6 +17,60 @@ declare global {
 
 const wrap = (id: any[]) => new LiveObject(id);
 
+// the id that `["id", 3]` or `"id 3"` refers to, or undefined for a path
+function id_of(path: LiveAPIPath) {
+  const [name, id, ...rest] = typeof path === "string" ? path.trim().split(/\s+/) : path;
+  return name === "id" && rest.length === 0 && id !== undefined && !Number.isNaN(Number(id))
+    ? Number(id)
+    : undefined;
+}
+
+// Paths that are the same Live object for as long as the script runs. Any other path can
+// come to mean another object, as when a track is moved.
+const ROOTS = ["live_set", "live_app", "this_device"];
+
+// A LiveAPI object is not given back while the script runs, even when nothing refers to it
+// any more, and each one makes the Live API slower. So the LiveObjects made for the same
+// Live object share one, kept here by the object's id, or by its path for a root.
+const shared = new Map<number | string, LiveAPI>();
+
+// the class of the Live object each LiveAPI object refers to, which an object keeps
+const classes = new WeakMap<LiveAPI, Lom.ClassName>();
+
+const refers_to_an_object = (api: LiveAPI) => Boolean(api.id) && Number(api.id) !== 0;
+
+// what LiveObjects made from `path` can share a LiveAPI object by, or undefined if they can't
+function shared_by(path: LiveAPIPath) {
+  const id = id_of(path);
+  if (id !== undefined) return id;
+  return typeof path === "string" && ROOTS.includes(path.trim()) ? path.trim() : undefined;
+}
+
+// Lets the LiveObjects made from `path` after this one use `api`, if they can share one and
+// have none yet. Not while it refers to no object, as when the Live API isn't ready.
+function share(path: LiveAPIPath, api: LiveAPI) {
+  const key = shared_by(path);
+  if (key !== undefined && !shared.has(key) && refers_to_an_object(api)) shared.set(key, api);
+  return api;
+}
+
+function shared_for(path: LiveAPIPath) {
+  const key = shared_by(path);
+  const api = key === undefined ? undefined : shared.get(key);
+
+  if (!api) {
+    return undefined;
+  }
+
+  // the Live object may have been deleted since, and Live may have given its id to another
+  if (typeof key === "number" ? Number(api.id) === key : refers_to_an_object(api)) {
+    return api;
+  }
+
+  shared.delete(key as number | string);
+  return undefined;
+}
+
 // Resolves property access on a LiveObject: its own members first, then LOM members
 // of the object's runtime class (`track.devices`, `track.mute = 1`, `clip.fire()`).
 const accessorHandler: ProxyHandler<LiveObjectBase<any>> = {
@@ -47,11 +101,22 @@ const accessorHandler: ProxyHandler<LiveObjectBase<any>> = {
  * constructor instead, which add the dynamic accessors for class C.
  */
 class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
-  /** The underlying LiveAPI object, for anything this wrapper doesn't cover. */
-  api: LiveAPI;
-
-  /** LiveAPI objects created by observe(), keyed by the observed member name. */
+  /**
+   * The LiveAPI objects that observe() uses, keyed by the observed member name. The first
+   * member observed may be observed by `api` itself, and the others each have their own.
+   */
   observers: Record<string, LiveAPI> = {};
+
+  // Every LiveAPI object costs time to make, and makes the Live API slower for as long as
+  // the script runs, so this one is made or borrowed when it is first needed (see `api`)
+  private live_api: LiveAPI | null = null;
+  private made_from: LiveAPIPath;
+
+  // Whether `api` was made with a callback, and so can observe; what that callback calls
+  // while it does; and what observe() returned for each member, to tell observations apart
+  private own_observes = false;
+  private own_notify: ((message: any[]) => void) | null = null;
+  private observations: Record<string, LiveObject.Observer> = {};
 
   /**
    * The current Live Set (`live_set`), or null if the Live API isn't available.
@@ -104,24 +169,45 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
    * The returned object also has an accessor for each member of its class, e.g.
    * `track.devices` for `track.get("devices")` and `clip.fire()` for `clip.call("fire")`.
    *
+   * Nothing is asked of Live until the object is used, so making one is cheap, as are the
+   * objects of a list of children that are never used. LiveObjects made from the same id
+   * are separate objects, with their own observers, that share one LiveAPI object.
+   *
    * @param path a path such as `"live_set tracks 0"`, or an id list such as `["id", 3]`
    * @example
    * const io = new LiveObject<"DeviceIO">(path);
    */
   constructor(path: LiveAPIPath) {
-    this.api = new LiveAPI(null, path);
+    this.made_from = path;
 
     // biome-ignore lint/correctness/noConstructorReturn: the Proxy is the whole point of this class
     return new Proxy(this, accessorHandler as ProxyHandler<this>);
   }
 
   /**
+   * The underlying LiveAPI object, for anything this wrapper doesn't cover. It is made the
+   * first time it is needed, and shared by the LiveObjects made from the same id, or from
+   * `live_set`, `live_app` or `this_device`.
+   *
+   * So don't point it at another Live object (by setting its `id` or `path`, or with
+   * `goto`), and don't set its `property`: make another LiveObject, and use observe().
+   */
+  get api(): LiveAPI {
+    this.live_api ??=
+      shared_for(this.made_from) ?? share(this.made_from, new LiveAPI(null, this.made_from));
+    return this.live_api;
+  }
+
+  /**
    * The id Live assigned to the object: 0 if there is no object at the path, and
    * undefined if the Live API isn't available. Ids are only valid while Live is running;
    * don't store them between sessions.
+   *
+   * An object made from an id, as the children that get() returns are, answers with that id
+   * without asking Live, for as long as nothing else has been asked of it.
    */
   get id() {
-    return this.api.id;
+    return this.live_api ? this.live_api.id : (id_of(this.made_from) ?? this.api.id);
   }
 
   /**
@@ -139,9 +225,20 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
   /**
    * The actual LOM class of the object, which may be a subclass of C (e.g. "SimplerDevice").
    * Not to be confused with the `type` property of devices.
+   *
+   * Live is asked once, as an object keeps its class. An object that doesn't exist has no
+   * class, and is asked again the next time.
    */
   get class_name() {
-    return this.api.type as Lom.ClassName;
+    const known = classes.get(this.api);
+
+    if (known) {
+      return known;
+    }
+
+    const class_name = this.api.type as Lom.ClassName;
+    if (class_name && this.exists) classes.set(this.api, class_name);
+    return class_name;
   }
 
   /**
@@ -275,10 +372,13 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
 
   /**
    * Calls `callback` whenever a child or property changes, with the value converted
-   * the same way as get(). Live may also call it once when observation starts. The
-   * observer is stored in `observers` under `name`.
+   * the same way as get(). Live may also call it when observation starts, and more than
+   * once. The observer is stored in `observers` under `name`.
    *
    * A member has one observer at a time: observing it again replaces the previous callback.
+   *
+   * An object that hasn't been used yet observes with its own LiveAPI object, `api`. One
+   * that has, and any further member, takes another LiveAPI object for each member observed.
    *
    * Does nothing if the object doesn't exist, which also happens when the Live API isn't
    * ready yet (e.g. when live.thisdevice bangs while the script reloads after a save).
@@ -296,33 +396,50 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
   ): LiveObject.Observer | null {
     const property = name as string;
 
+    // a LiveAPI object can only observe with the callback it was made with
+    if (!this.live_api) {
+      this.live_api = new LiveAPI((message) => this.own_notify?.(message), this.made_from);
+      this.own_observes = true;
+      share(this.made_from, this.live_api);
+    }
+
     if (!this.exists) {
       return null;
     }
 
     this.unobserve(name);
 
-    // refer to the object by id: it was just checked to exist, whereas the path is
-    // quoted and may not be valid yet while Live is still loading
-    const api = new LiveAPI(
-      (message) => {
-        if (message[0] === property) {
-          callback(normalizeLiveValue(property, message.slice(1), wrap));
-        }
-      },
-      ["id", this.api.id],
-    );
+    const notify = (message: any[]) => {
+      if (message[0] === property) {
+        callback(normalizeLiveValue(property, message.slice(1), wrap));
+      }
+    };
+
+    let api: LiveAPI;
+
+    if (this.own_observes && !this.own_notify) {
+      this.own_notify = notify;
+      api = this.live_api;
+    } else {
+      // refer to the object by id: it was just checked to exist, whereas the path is
+      // quoted and may not be valid yet while Live is still loading
+      api = new LiveAPI(notify, ["id", this.live_api.id]);
+    }
+
     api.property = property;
     this.observers[property] = api;
 
-    return {
+    const observation: LiveObject.Observer = {
       unobserve: () => {
-        // unless a later observe() of the same member has replaced this observer
-        if (this.observers[property] === api) {
+        // unless a later observe() of the same member has replaced this one
+        if (this.observations[property] === observation) {
           this.unobserve(name);
         }
       },
     };
+    this.observations[property] = observation;
+
+    return observation;
   }
 
   /**
@@ -344,6 +461,12 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
 
     observer.property = "";
     delete this.observers[property];
+    delete this.observations[property];
+
+    // `api` is free to observe another member
+    if (observer === this.live_api) {
+      this.own_notify = null;
+    }
   }
 }
 

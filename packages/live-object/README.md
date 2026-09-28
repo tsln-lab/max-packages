@@ -32,6 +32,37 @@ dictionary properties as parsed objects. Accessors read from Live on every acces
 new objects each time, so store a result in a variable when using it more than once. Like all
 Live API access, none of this works in a script's global code; wait for `live.thisdevice` to bang.
 
+## What it costs
+
+A `LiveAPI` object is the expensive part of reaching Live from JavaScript. Measured in Live 12.4:
+
+- Reading a property of an object you already hold takes about 35 µs, as it does with
+  `live.object`.
+- Making a `LiveAPI` object takes 0.4 to 0.8 ms.
+- Every `LiveAPI` object made adds to the cost of every later call to the Live API, by about
+  6 µs for each 1000 objects, and more than that for calls from JavaScript.
+- A `LiveAPI` object is not given back when nothing refers to it any more. It stays until the
+  script is reloaded or the device removed.
+
+So what counts is how many `LiveAPI` objects a script makes while it runs, and a `LiveObject`
+makes as few as it can:
+
+- It makes its `LiveAPI` object (`api`) when it is first used, and not before. The objects in a
+  list of children cost nothing until they are used, and a `LiveObject` made from an id answers
+  `id` without asking Live, so comparing the ids of `song.tracks` with the ones you know makes
+  no `LiveAPI` objects.
+- The `LiveObject`s made from the same id share one `LiveAPI` object, as do the ones made from
+  `live_set`, `live_app` and `this_device`. Reading `track.devices` again and again makes one
+  for each device, once. The `LiveObject`s themselves stay separate, each with its own
+  observers.
+- The class of an object, which the accessors need, is asked for once.
+- `observe()` on an object that hasn't been used yet observes with a `LiveAPI` object of the
+  `LiveObject`'s own, which it then uses for everything else. Otherwise, and for every further
+  member, it makes one for the member.
+
+A `LiveObject` made from any other path, such as `live_set tracks 0`, has a `LiveAPI` object to
+itself, because the path can come to mean another object. Keep those in variables.
+
 ## Install
 
 ```sh
