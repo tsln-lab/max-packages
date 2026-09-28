@@ -38,9 +38,12 @@ export function liveObjectTests() {
   track.set("mute", 1);
   track.call("insert_device", "Simpler", 0);
   track.get_count("devices");
-  track.observe("devices", (devices) => {
+  const observer = track.observe("devices", (devices) => {
     type _devices = Expect<Eq<typeof devices, LiveObject<"Device">[]>>;
   });
+  type _observer = Expect<Eq<typeof observer, LiveObject.Observer | null>>;
+  observer?.unobserve();
+  track.unobserve("devices");
 
   for (const device of track.get("devices")) {
     if (device.is("SimplerDevice")) {
@@ -91,6 +94,8 @@ export function liveObjectTests() {
   track.call("insert_device", 42);
   // @ts-expect-error not a list child
   track.get_count("mixer_device");
+  // @ts-expect-error not an observable property
+  track.unobserve("can_be_armed");
   // @ts-expect-error invalid literal path
   LiveObject.at("live_set trax 0");
   // @ts-expect-error paths only known at runtime need new LiveObject<Class>(path)

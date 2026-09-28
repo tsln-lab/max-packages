@@ -17,7 +17,8 @@ track.devices; // LiveObject<"Device">[]
 track.insert_device("Simpler", 0); // checked arguments
 
 track.get("name"); // the same members through get(), set(), call() and get_count()
-track.observe("devices", (devices) => post(devices.length, "\n"));
+const observer = track.observe("devices", (devices) => post(devices.length, "\n"));
+observer?.unobserve(); // or track.unobserve("devices")
 
 for (const device of track.devices) {
   if (device.is("SimplerDevice")) device.sample; // narrowed to the subclass

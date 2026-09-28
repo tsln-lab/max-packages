@@ -278,24 +278,33 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
    * the same way as get(). Live may also call it once when observation starts. The
    * observer is stored in `observers` under `name`.
    *
+   * A member has one observer at a time: observing it again replaces the previous callback.
+   *
    * Does nothing if the object doesn't exist, which also happens when the Live API isn't
    * ready yet (e.g. when live.thisdevice bangs while the script reloads after a save).
    *
    * @param name a child or property of C that supports observe
    * @param callback receives the new value
-   * @returns whether observation started
+   * @returns an observer to stop the observation with, or null if it didn't start
    * @example
-   * track.observe("devices", (devices) => post(devices.length, "\n"));
+   * const observer = track.observe("devices", (devices) => post(devices.length, "\n"));
+   * observer?.unobserve();
    */
   observe<K extends Lom.MemberWith<C, "observe">>(
     name: K,
     callback: (value: Lom.MemberValue<C, K>) => void,
-  ): boolean {
+  ): LiveObject.Observer | null {
     const property = name as string;
+
+    if (!this.exists) {
+      return null;
+    }
+
+    this.unobserve(name);
 
     // refer to the object by id: it was just checked to exist, whereas the path is
     // quoted and may not be valid yet while Live is still loading
-    this.observers[property] = new LiveAPI(
+    const api = new LiveAPI(
       (message) => {
         if (message[0] === property) {
           callback(normalizeLiveValue(property, message.slice(1), wrap));
@@ -303,8 +312,38 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
       },
       ["id", this.api.id],
     );
-    this.observers[property].property = property;
-    return true;
+    api.property = property;
+    this.observers[property] = api;
+
+    return {
+      unobserve: () => {
+        // unless a later observe() of the same member has replaced this observer
+        if (this.observers[property] === api) {
+          this.unobserve(name);
+        }
+      },
+    };
+  }
+
+  /**
+   * Stops the observation observe() started for `name`, and removes it from `observers`.
+   * Same as calling `unobserve()` on the observer that observe() returned. Does nothing
+   * if `name` isn't being observed.
+   *
+   * @param name a child or property of C that supports observe
+   * @example
+   * track.unobserve("devices");
+   */
+  unobserve<K extends Lom.MemberWith<C, "observe">>(name: K) {
+    const property = name as string;
+    const observer = this.observers[property];
+
+    if (!observer) {
+      return;
+    }
+
+    observer.property = "";
+    delete this.observers[property];
   }
 }
 
@@ -329,5 +368,13 @@ type LiveObjectConstructor = Omit<typeof LiveObjectBase, "prototype"> & {
 };
 
 const LiveObject = LiveObjectBase as unknown as LiveObjectConstructor;
+
+declare namespace LiveObject {
+  /** What observe() returns: stops the observation it started. */
+  interface Observer {
+    /** Stops calling the callback. Does nothing if the observation has already stopped. */
+    unobserve(): void;
+  }
+}
 
 export = LiveObject;
