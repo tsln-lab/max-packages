@@ -32,6 +32,12 @@
       // name, so nothing references them, and the generated project turns this rule off too
       "includes": ["packages/create-max/template/**", "packages/create-max/template-node/**"],
       "linter": { "rules": { "correctness": { "noUnusedVariables": "off" } } }
+    },
+    {
+      // The http, net and other modules declared here are the ones built into Max's [v8],
+      // which share their names with Node's and have no "node:" form
+      "includes": ["packages/max-types/**"],
+      "linter": { "rules": { "style": { "useNodejsImportProtocol": "off" } } }
     }
   ],
   "linter": {

@@ -1,6 +1,6 @@
 // Ambient declarations for the Max [v8] / [js] / [jsui] / [v8ui] JavaScript API:
-// jsthis (the global script scope), post/cpost/error/messnamed, Global, Task,
-// Max, and Wind.
+// jsthis (the global script scope), post/cpost/error/messnamed, console, the
+// timers, Global, Task, Max, and Wind.
 // Transcribed from https://docs.cycling74.com/apiref/js/
 
 // ==== jsthis ====
@@ -310,6 +310,112 @@ declare function cpost(...args: any[]): void;
  * @see https://docs.cycling74.com/apiref/js/error/
  */
 declare function error(...args: any[]): void;
+
+// ==== console ====
+
+/**
+ * The console of the v8 runtime, which writes to the Max console: `log`, `info` and `debug`
+ * as ordinary rows, `warn` as warning rows, and `error`, `assert` and `trace` as error rows.
+ *
+ * Supported only in the v8 engine. Introduced in Max 9.2.0. It has more methods than the
+ * reference lists (`dir`, `table`, `group` and others), which are left out here.
+ * @see https://docs.cycling74.com/apiref/js/console/
+ */
+interface Console {
+  /** If condition is falsy, prints the remaining arguments as an error. */
+  assert(condition?: boolean, ...data: any[]): void;
+  /** Increments and prints a counter for the given label. */
+  count(label?: string): void;
+  /** Resets the counter for the given label. */
+  countReset(label?: string): void;
+  /** Prints a debug message. */
+  debug(...data: any[]): void;
+  /** Prints an error. */
+  error(...data: any[]): void;
+  /** Prints an informational message. */
+  info(...data: any[]): void;
+  /** Prints a message. */
+  log(...data: any[]): void;
+  /** Starts a timer under the given label. */
+  time(label?: string): void;
+  /** Stops the timer for the given label and prints the elapsed time. */
+  timeEnd(label?: string): void;
+  /** Prints the elapsed time for the given label without stopping the timer. */
+  timeLog(label?: string, ...data: any[]): void;
+  /** Prints a stack trace, as an error. */
+  trace(...data: any[]): void;
+  /** Prints a warning. */
+  warn(...data: any[]): void;
+}
+
+/** @see https://docs.cycling74.com/apiref/js/global-console/ */
+declare const console: Console;
+
+// ==== timers ====
+//
+// Supported only in the v8 engine. Introduced in Max 9.2.0. The documented callback type is
+// `(...args: any[]) => void`; here the callback's parameters are checked against the
+// arguments passed for it.
+
+/**
+ * Schedules a one-shot callback to run after a delay. Backed by the Max scheduler.
+ * @param callback the function to run when the timer fires
+ * @param delay delay in milliseconds before the callback runs (default 0)
+ * @param args additional arguments forwarded to the callback
+ * @returns a numeric timer ID for use with clearTimeout()
+ * @see https://docs.cycling74.com/apiref/js/global-settimeout/
+ */
+declare function setTimeout<A extends any[]>(
+  callback: (...args: A) => void,
+  delay?: number,
+  ...args: A
+): number;
+/**
+ * Cancels a timeout previously created with setTimeout().
+ * @see https://docs.cycling74.com/apiref/js/global-cleartimeout/
+ */
+declare function clearTimeout(id: number): void;
+
+/**
+ * Schedules a callback to run repeatedly at a fixed interval. If an interval fires faster
+ * than its callback can be serviced, pending callbacks are coalesced rather than backlogged.
+ * @param callback the function to run on each interval
+ * @param delay interval in milliseconds between callbacks (default 0)
+ * @param args additional arguments forwarded to the callback
+ * @returns a numeric timer ID for use with clearInterval()
+ * @see https://docs.cycling74.com/apiref/js/global-setinterval/
+ */
+declare function setInterval<A extends any[]>(
+  callback: (...args: A) => void,
+  delay?: number,
+  ...args: A
+): number;
+/**
+ * Cancels an interval previously created with setInterval().
+ * @see https://docs.cycling74.com/apiref/js/global-clearinterval/
+ */
+declare function clearInterval(id: number): void;
+
+/**
+ * Schedules a callback to run on the next scheduler tick.
+ * @param callback the function to run
+ * @param args additional arguments forwarded to the callback
+ * @returns a numeric timer ID for use with clearImmediate()
+ * @see https://docs.cycling74.com/apiref/js/global-setimmediate/
+ */
+declare function setImmediate<A extends any[]>(callback: (...args: A) => void, ...args: A): number;
+/**
+ * Cancels a callback previously scheduled with setImmediate().
+ * @see https://docs.cycling74.com/apiref/js/global-clearimmediate/
+ */
+declare function clearImmediate(id: number): void;
+
+/**
+ * Queues a microtask, to run after the current task completes and before the next timer
+ * callback.
+ * @see https://docs.cycling74.com/apiref/js/global-queuemicrotask/
+ */
+declare function queueMicrotask(callback: () => void): void;
 
 // ==== messnamed ====
 

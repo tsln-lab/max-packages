@@ -1,6 +1,6 @@
 // Ambient declarations for Max's data-access JavaScript API:
-// Dict, Buffer, PolyBuffer, File, Folder, FileTypes, MaxString, SQLite,
-// SQLResult, XMLHttpRequest, ProgressEvent.
+// Dict, Buffer, PolyBuffer, File, Folder, FileTypes, MaxString, MaxArray, MaxFFT,
+// MaxFFT2D, Rx256, SQLite, SQLResult, XMLHttpRequest, ProgressEvent.
 // Transcribed from https://docs.cycling74.com/apiref/js/
 
 // ---- Dict ----
@@ -106,6 +106,11 @@ declare class Dict {
   stringify_unformatted(): string;
   /** Return the content of the dictionary as a JSON string. */
   stringify(): string;
+  /**
+   * The content of the dictionary as plain values, which is what makes JSON.stringify(dict)
+   * give the content. From Max 9.2.0 (v8 engine); in the release notes, not the reference.
+   */
+  toJSON(): any;
   /** Open a save dialog to write the dictionary contents to a file. */
   writeagain(): void;
 }
@@ -656,6 +661,229 @@ declare class MaxString {
   parse(value: any): void;
   /** Get the current value of the MaxString as a string. */
   stringify(): string;
+  /**
+   * The value JSON.stringify() uses for the MaxString. From Max 9.2.0 (v8 engine); in the
+   * release notes, not the reference.
+   */
+  toJSON(): any;
+}
+
+// ---- MaxArray ----
+
+/** What a MaxArray gives back for an element. */
+type MaxArrayElement = string | number | Dict | MaxArray;
+/** What a MaxArray takes for an element. */
+type MaxArrayValue = string | number | MaxString | Dict | MaxArray;
+
+/**
+ * Bind a Max array object.
+ * @see https://docs.cycling74.com/apiref/js/maxarray/
+ */
+declare class MaxArray {
+  /** Create a new MaxArray. */
+  constructor(args?: (string | number)[]);
+
+  /** The number of elements in the MaxArray. */
+  readonly length: number;
+  /** Get and set the name of the MaxArray. */
+  name: string;
+  /** The number of elements in the MaxArray. */
+  readonly size: number;
+
+  /** Append one or more elements to the end of the MaxArray. */
+  append(...args: MaxArrayValue[]): void;
+  /** Get the value at the specified index. */
+  at(index: number): MaxArrayElement;
+  /** Remove all elements from the MaxArray. */
+  clear(): void;
+  /** Delete a single element at the specified index. */
+  delete(index: number): void;
+  /** Free the native C peer. */
+  freepeer(): void;
+  /** Get the current value of the MaxArray as a JavaScript array. */
+  get(): MaxArrayElement[];
+  /** Insert a single element at the specified index. */
+  insert(index: number, value: MaxArrayValue): void;
+  /** Update the value of the MaxArray. */
+  parse(value: string): void;
+  /** Insert one or more elements at the start of the MaxArray. */
+  prepend(...args: MaxArrayValue[]): void;
+  /** Replace the element at the given index with a new value. */
+  replace(index: number, value: MaxArrayValue): void;
+  /** Set the value of the MaxArray. */
+  set(...args: (string | number)[]): void;
+  /** Get the current value of the MaxArray as a string. */
+  stringify(): string;
+  /**
+   * The value JSON.stringify() uses for the MaxArray. From Max 9.2.0 (v8 engine); in the
+   * release notes, not the reference.
+   */
+  toJSON(): any;
+}
+
+// ---- MaxFFT / MaxFFT2D ----
+
+/**
+ * Options for constructing a MaxFFT.
+ * @see https://docs.cycling74.com/apiref/js/maxfftoptions/
+ */
+interface MaxFFTOptions {
+  /**
+   * When true, inverse() scales its output by 1/size, so that inverse(forward(x)) gives x
+   * back; when false (the default), transforms are unscaled.
+   */
+  normalize?: boolean;
+  /** "float32" (the default) works on Float32Array, "float64" on Float64Array. */
+  precision?: "float32" | "float64";
+  /**
+   * Spectrum layout, for real transforms only: "packed" (the default) is the native
+   * half-spectrum; "unpacked" follows the numpy/CCS convention.
+   */
+  spectrum?: "packed" | "unpacked";
+  /**
+   * "real" (the default) makes a half-spectrum from real input; "complex" takes and gives
+   * interleaved complex values.
+   */
+  type?: "real" | "complex";
+}
+
+/**
+ * SIMD-accelerated forward and inverse Fast Fourier Transforms of real or complex signals, in
+ * single or double precision. v8 engine only, from Max 9.2.0.
+ * @see https://docs.cycling74.com/apiref/js/maxfft/
+ */
+declare class MaxFFT {
+  /** Create an FFT processor for a fixed transform size. */
+  constructor(size: number, options?: MaxFFTOptions);
+
+  /** Allocate a typed array guaranteed to use the zero-copy path. */
+  static alloc(length: number, precision?: "float32"): Float32Array;
+  static alloc(length: number, precision: "float64"): Float64Array;
+  /** Check whether a size is a natively fast transform size. */
+  static isFastSize(size: number, type?: "real" | "complex"): boolean;
+  /** The minimum valid transform size for a transform type. */
+  static minSize(type?: "real" | "complex"): number;
+  /** Find the nearest natively fast transform size to an arbitrary size. */
+  static nearestFastSize(size: number, type?: "real" | "complex", higher?: boolean): number;
+
+  /** True once dispose() has been called. */
+  readonly disposed: boolean;
+  /** The number of elements every time-domain array must have. */
+  readonly length: number;
+  /** Whether inverse() scales its output by 1/size. */
+  readonly normalize: boolean;
+  /** The numeric precision. */
+  readonly precision: "float32" | "float64";
+  /** The transform size, as passed to the constructor. */
+  readonly size: number;
+  /** The spectrum layout used by real transforms. */
+  readonly spectrum: "packed" | "unpacked";
+  /** The number of elements a spectrum has. */
+  readonly spectrumLength: number;
+  /** The transform type. */
+  readonly type: "real" | "complex";
+
+  /** Free the native FFT state immediately. */
+  dispose(): void;
+  /** Perform the forward transform. */
+  forward(input: number[]): number[];
+  forward(input: Float32Array, output?: Float32Array): Float32Array;
+  forward(input: Float64Array, output?: Float64Array): Float64Array;
+  /** Perform the inverse transform. */
+  inverse(input: number[]): number[];
+  inverse(input: Float32Array, output?: Float32Array): Float32Array;
+  inverse(input: Float64Array, output?: Float64Array): Float64Array;
+}
+
+/**
+ * Options for constructing a MaxFFT2D.
+ * @see https://docs.cycling74.com/apiref/js/maxfft2doptions/
+ */
+interface MaxFFT2DOptions {
+  /**
+   * When true, inverse() scales its output by 1 / (rows * cols), so that inverse(forward(x))
+   * gives x back.
+   */
+  normalize?: boolean;
+  /** "float32" works on Float32Array, "float64" on Float64Array. */
+  precision?: "float32" | "float64";
+  /**
+   * "real" takes a real-valued grid and gives an unpacked half-spectrum; "complex" takes and
+   * gives interleaved complex values.
+   */
+  type?: "real" | "complex";
+}
+
+/**
+ * A row/column-decomposed 2-D FFT of real or complex grids, in single or double precision.
+ * v8 engine only, from Max 9.2.0.
+ * @see https://docs.cycling74.com/apiref/js/maxfft2d/
+ */
+declare class MaxFFT2D {
+  /** Create a 2-D FFT processor for a fixed grid size. */
+  constructor(rows: number, cols: number, options?: MaxFFT2DOptions);
+
+  /** Check whether a (rows, cols) pair is a natively fast 2-D transform size. */
+  static isFastSize(rows: number, cols: number, type?: "real" | "complex"): boolean;
+  /** Find the nearest natively fast 2-D transform size to an arbitrary pair. */
+  static nearestFastSize(
+    rows: number,
+    cols: number,
+    type?: "real" | "complex",
+    higher?: boolean,
+  ): [number, number];
+
+  /** The column count, as passed to the constructor. */
+  readonly cols: number;
+  /** True once dispose() has been called. */
+  readonly disposed: boolean;
+  /** The number of elements in a time-domain array (rows * cols, or twice that for complex). */
+  readonly length: number;
+  /** Whether inverse() scales its output by 1 / (rows * cols). */
+  readonly normalize: boolean;
+  /** The numeric precision. */
+  readonly precision: "float32" | "float64";
+  /** The row count, as passed to the constructor. */
+  readonly rows: number;
+  /** The number of elements in a spectrum array. */
+  readonly spectrumLength: number;
+  /** The transform type. */
+  readonly type: "real" | "complex";
+
+  /** Free the native FFT state immediately. */
+  dispose(): void;
+  /** Perform the forward transform. */
+  forward(input: number[]): number[];
+  forward(input: Float32Array, output?: Float32Array): Float32Array;
+  forward(input: Float64Array, output?: Float64Array): Float64Array;
+  /** Perform the inverse transform. */
+  inverse(input: number[]): number[];
+  inverse(input: Float32Array, output?: Float32Array): Float32Array;
+  inverse(input: Float64Array, output?: Float64Array): Float64Array;
+}
+
+// ---- Rx256 ----
+
+/**
+ * Xoshiro256+ random number generator: efficient, with excellent statistical properties for
+ * both integer and floating-point use.
+ * @see https://docs.cycling74.com/apiref/js/rx256/
+ */
+declare class Rx256 {
+  constructor();
+
+  /**
+   * The seed for the generator. Set it to a non-zero value for a repeatable sequence; the
+   * default, 0, seeds from the system clock.
+   */
+  seed: number;
+
+  /** Generate a floating-point value between -1 and 1. */
+  nextfloat_bipolar(): number;
+  /** Generate a floating-point value between 0 and 1. */
+  nextfloat_unipolar(): number;
+  /** Get the next random integer in a range, from 0 to range - 1. */
+  nextint(range: number): number;
 }
 
 // ---- SQLite ----
@@ -739,7 +967,8 @@ declare class SQLResult {
  *
  * Implements a subset of the web standard XMLHttpRequest API, allowing you to make
  * HTTP requests to fetch data from servers. Based on the Max maxurl object and
- * supports asynchronous requests only.
+ * supports asynchronous requests only. Rewritten in Max 9.2.0, which added `response`,
+ * `responseURL`, `upload`, the response types other than text, and event listeners.
  *
  * The readyState property indicates the current state of the request:
  * 0 (UNSENT) open() has not been called yet;
@@ -753,7 +982,24 @@ declare class SQLResult {
  * @see https://docs.cycling74.com/apiref/js/xmlhttprequest/
  */
 declare class XMLHttpRequest {
+  /** State constant: open() has not been called (0). */
+  static readonly UNSENT: 0;
+  /** State constant: open() has been called (1). */
+  static readonly OPENED: 1;
+  /** State constant: headers and status are available (2). */
+  static readonly HEADERS_RECEIVED: 2;
+  /** State constant: the response body is downloading (3). */
+  static readonly LOADING: 3;
+  /** State constant: the operation is complete (4). */
+  static readonly DONE: 4;
+
   constructor();
+
+  readonly UNSENT: 0;
+  readonly OPENED: 1;
+  readonly HEADERS_RECEIVED: 2;
+  readonly LOADING: 3;
+  readonly DONE: 4;
 
   /** Called when the request is aborted. Only available in the new v8 javascript engine objects. */
   onabort: ((this: XMLHttpRequest) => void) | null;
@@ -773,10 +1019,14 @@ declare class XMLHttpRequest {
   ontimeout: ((this: XMLHttpRequest) => void) | null;
   /** The current state of the request (0 UNSENT, 1 OPENED, 2 HEADERS_RECEIVED, 3 LOADING, 4 DONE). */
   readonly readyState: number;
-  /** The response body as a string. Only text responses are currently supported. */
+  /** The response, parsed as `responseType` says. From Max 9.2.0. */
+  readonly response: string | ArrayBuffer | Blob | any;
+  /** The response body as a string. */
   readonly responseText: string;
-  /** The response type. Currently only "text" is supported. */
-  responseType: string;
+  /** The response type. Before Max 9.2.0 only "text" was supported. */
+  responseType: "" | "text" | "arraybuffer" | "blob" | "json";
+  /** The final response URL, reflecting any redirects that were followed. From Max 9.2.0. */
+  readonly responseURL: string;
   /** The HTTP status code of the response (e.g., 200, 404, 500). A value of 0 indicates the request has not completed or encountered an error. */
   readonly status: number;
   /** The HTTP status text of the response (e.g., "OK", "Not Found"). */
@@ -785,6 +1035,8 @@ declare class XMLHttpRequest {
   timeout: number;
   /** Whether to include credentials (cookies, authorization headers) in cross-origin requests. Currently not fully implemented. */
   withCredentials: boolean;
+  /** The upload object, with progress events for the request body. From Max 9.2.0. */
+  readonly upload: XMLHttpRequestUpload;
 
   /**
    * Gets a Max-specific response key from the underlying maxurl object. Common keys
@@ -802,6 +1054,8 @@ declare class XMLHttpRequest {
    * is set to UNSENT (0), and the onabort handler is called if one is set.
    */
   abort(): void;
+  /** Registers an event listener. From Max 9.2.0. */
+  addEventListener(type: string, listener: (...args: any[]) => void): void;
   /** Gets all response headers as a single string, separated by newlines, or an empty string if none are available. */
   getAllResponseHeaders(): string;
   /**
@@ -820,13 +1074,37 @@ declare class XMLHttpRequest {
   open(method: string, url: string, async?: boolean, username?: string, password?: string): void;
   /** Overrides the MIME type of the response. Must be called before send(). */
   overrideMimeType(mimeType: string): void;
+  /** Removes a previously registered event listener. From Max 9.2.0. */
+  removeEventListener(type: string, listener: (...args: any[]) => void): void;
   /**
    * Sends the request.
    * @param body optional request body (for POST, PUT, etc.)
    */
-  send(body?: string): void;
+  send(body?: any): void;
   /** Sets a request header. Must be called after open() but before send(). */
   setRequestHeader(name: string, value: string): void;
+}
+
+/**
+ * The upload object of an XMLHttpRequest, with progress events for the request body.
+ * Supported only in the v8 engine. Introduced in Max 9.2.0.
+ * @see https://docs.cycling74.com/apiref/js/xmlhttprequestupload/
+ */
+interface XMLHttpRequestUpload {
+  /** Called when the upload is aborted. */
+  onabort: ((event: ProgressEvent) => void) | null;
+  /** Called when the upload encounters an error. */
+  onerror: ((event: ProgressEvent) => void) | null;
+  /** Called when the upload completes successfully. */
+  onload: ((event: ProgressEvent) => void) | null;
+  /** Called when the upload finishes, whether it succeeded or failed. */
+  onloadend: ((event: ProgressEvent) => void) | null;
+  /** Called when the upload begins. */
+  onloadstart: ((event: ProgressEvent) => void) | null;
+  /** Called periodically as the upload progresses. */
+  onprogress: ((event: ProgressEvent) => void) | null;
+  /** Called when the upload times out. */
+  ontimeout: ((event: ProgressEvent) => void) | null;
 }
 
 /**

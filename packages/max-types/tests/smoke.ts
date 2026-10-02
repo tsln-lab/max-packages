@@ -78,5 +78,73 @@ if (file.isopen) {
   file.close();
 }
 
+// ---- Max 9.2: console and timers ----
+
+console.log("value is", 42, { nested: true });
+const timeout: number = setTimeout((text: string, n: number) => post(text, n), 50, "late", 1);
+clearTimeout(timeout);
+const interval = setInterval(() => clearInterval(interval), 10);
+clearImmediate(setImmediate(() => {}));
+queueMicrotask(() => {});
+// @ts-expect-error the arguments are checked against the callback
+setTimeout((n: number) => post(n), 0, "not a number");
+
+// ---- Max 9.2: fetch, websockets, modules ----
+
+async function load(): Promise<string> {
+  const response = await fetch("https://example.com/data.json", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ a: 1 }),
+    signal: AbortSignal.timeout(1000),
+  });
+  if (!response.ok) throw new Error(`Status: ${response.status}`);
+  return response.text();
+}
+
+const wss = new WebSocketServer({ port: 3000, host: "127.0.0.1" });
+wss.on("connection", (socket: WebSocketConnection) => {
+  socket.on("message", (event: WebSocketMessageEvent) => {
+    const text = typeof event.data === "string" ? event.data : event.data.toString("utf8");
+    socket.send(`echo: ${text}`);
+  });
+});
+
+const ws = new WebSocket("ws://127.0.0.1:3000");
+ws.onmessage = (event) => post(typeof event.data);
+ws.onerror = (event) => post(event.error.code ?? event.error.message);
+
+import http = require("http");
+import net = require("net");
+import dgram = require("dgram");
+import buffer = require("buffer");
+
+const server: http.Server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/plain");
+  res.end(`${req.method} ${req.url}`);
+});
+server.listen(3007, () => post(server.address().port));
+
+const client: net.Socket = net.createConnection({ port: 3000, host: "127.0.0.1" }, () => {
+  client.write("hello");
+});
+
+const udp = dgram.createSocket("udp4");
+udp.send(IOBuffer.from("hello"), 41234, "127.0.0.1");
+const bytes: IOBuffer = new buffer.IOBuffer("68656c6c6f", "hex");
+
+// Buffer is still the buffer~ wrapper
+const samples: number[] = new Buffer("loop").peek(1, 0, 16);
+
+// ---- Max 9.2: MaxFFT, MaxArray, Dict.toJSON ----
+
+const fft = new MaxFFT(1024, { type: "real", precision: "float64" });
+const spectrum: Float64Array = fft.forward(MaxFFT.alloc(fft.length, "float64"));
+fft.dispose();
+const array = new MaxArray([1, 2, "three"]);
+array.append(dict, 4);
+const json: string = JSON.stringify(dict.toJSON());
+
 // Values checked only by their types.
-export const _checked = { made, gain, keys, values, id, g };
+export const _checked = { made, gain, keys, values, id, g, load, bytes, samples, spectrum, json };

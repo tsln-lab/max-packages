@@ -3,13 +3,15 @@
 // Transcribed from https://docs.cycling74.com/apiref/js/
 //
 // These are ambient globals meant for projects compiled with `lib: ["ES2022"]`
-// and no DOM / Node types: File, Buffer, XMLHttpRequest, ProgressEvent and
-// PointerEvent share names with DOM/Node globals.
+// and no DOM / Node types: console, the timers, fetch, File, Buffer, URL,
+// WebSocket, XMLHttpRequest, PointerEvent and more share names with DOM/Node
+// globals, and the built-in modules (http, net, ...) share theirs with Node's.
 
 /// <reference path="globals.d.ts" />
 /// <reference path="patcher.d.ts" />
 /// <reference path="live.d.ts" />
 /// <reference path="data.d.ts" />
+/// <reference path="network.d.ts" />
 /// <reference path="mgraphics.d.ts" />
 /// <reference path="sketch.d.ts" />
 /// <reference path="jitter.d.ts" />

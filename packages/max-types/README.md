@@ -26,8 +26,36 @@ The declarations are global, so list the package in `types` rather than importin
 }
 ```
 
-Compile with `lib: ["ES2022"]` and no DOM or Node types: `File`, `Buffer`, `XMLHttpRequest`,
-`ProgressEvent` and `PointerEvent` share names with DOM and Node globals.
+Compile with `lib: ["ES2022"]` and no DOM or Node types: `console`, `setTimeout`, `fetch`,
+`File`, `Buffer`, `URL`, `WebSocket`, `XMLHttpRequest`, `PointerEvent` and more share names
+with DOM and Node globals, and the built-in modules share theirs with Node's.
+
+## Max 9.2
+
+The declarations follow the reference for Max 9.2, whose `[v8]` gained a `console` that writes
+to the Max console, `setTimeout` and the other timers, `fetch`, `WebSocket` and
+`WebSocketServer`, `MaxFFT`, and the built-in modules `http`, `https`, `net`, `tls`, `dgram`
+and `buffer`:
+
+```ts
+import http = require("http");
+
+const server = http.createServer((req, res) => {
+  res.setHeader("Content-Type", "text/plain");
+  res.end("hello\n");
+});
+server.listen(3007, () => console.log("listening"));
+
+setTimeout(() => server.close(), 60_000);
+```
+
+Each of these is a subset of the browser or Node API it is named after. None of them exists
+in Max 9.1 or earlier, or in `[js]`, and the types can't tell which Max a script will run in:
+a script that has to run in an older Max must check before it calls, as in
+`typeof setTimeout == "function"`.
+
+The binary type of the networking APIs is `IOBuffer`, a `Uint8Array` subclass. `Buffer` is
+still the `buffer~` wrapper.
 
 ## Not for `[node.script]`
 
@@ -73,10 +101,11 @@ which a top-level `[v8]` script can't run.
 
 | File | Declares |
 | --- | --- |
-| `globals.d.ts` | The jsthis scope (`inlets`, `outlet`, `post`, ...), `ScriptHandlers`, `Handlers`, `Global`, `Task`, `Max`, `Wind` |
+| `globals.d.ts` | The jsthis scope (`inlets`, `outlet`, `post`, ...), `ScriptHandlers`, `Handlers`, `console`, the timers, `Global`, `Task`, `Max`, `Wind` |
 | `patcher.d.ts` | `Patcher`, `Maxobj`, `MaxobjConnection`, `Folder` |
 | `live.d.ts` | `LiveAPI` |
-| `data.d.ts` | `Dict`, `Buffer`, `File`, `PolyBuffer`, `SQLite`, `XMLHttpRequest` |
+| `data.d.ts` | `Dict`, `Buffer`, `File`, `PolyBuffer`, `MaxString`, `MaxArray`, `MaxFFT`, `MaxFFT2D`, `Rx256`, `SQLite`, `XMLHttpRequest` |
+| `network.d.ts` | `fetch`, `Request`, `Response`, `Headers`, `AbortController`, `Blob`, `FormData`, `URL`, the streams, `EventSource`, `WebSocket`, `WebSocketServer`, `IOBuffer`, and the modules `buffer`, `dgram`, `net`, `tls`, `http`, `https` |
 | `mgraphics.d.ts` | `mgraphics`, `MGraphics`, `Image`, `ImageContext` |
 | `sketch.d.ts` | `sketch`, `Sketch` |
 | `jitter.d.ts` | `JitterObject`, `JitterMatrix`, `JitterListener`, ... |
