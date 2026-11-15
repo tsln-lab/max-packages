@@ -288,11 +288,34 @@ assert.equal(counting(() => LiveObject.app()).made, 1);
     pad.observe("mute", () => {});
     pad.unobserve("mute");
   })();
+
+  // but the callback of an observation that has stopped is let go of, whether it observed
+  // with the object's own LiveAPI object (fresh) or with another one (used)
+  let callbacks_freed = 0;
+  const callbacks = new FinalizationRegistry(() => callbacks_freed++);
+  (() => {
+    const fresh = new LiveObject(["id", 5]);
+    const used = new LiveObject(["id", 4]);
+    used.get("name");
+    for (const [object, name] of [
+      [fresh, "name"],
+      [used, "name"],
+      [used, "mute"],
+    ]) {
+      const callback = () => {};
+      callbacks.register(callback, null);
+      object.observe(name, callback);
+      object.unobserve(name);
+    }
+    assert.equal(fresh.observers.name, undefined);
+  })();
+
   for (let i = 0; i < 5; i++) {
     globalThis.gc();
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
   assert.equal(freed, 0);
+  assert.equal(callbacks_freed, 3);
 
   console.log("live-object: all assertions passed");
 })();
