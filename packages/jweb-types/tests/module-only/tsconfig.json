@@ -1,0 +1,6 @@
+{
+  // The main entry alone, without global.d.ts: its types can be imported, and it adds nothing to
+  // the globals
+  "extends": "../../tsconfig.json",
+  "include": ["../../index.d.ts", "check.ts"]
+}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    // Mirror a page loaded in [jweb]: a browser page, with the DOM
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": [],
+    "strict": true,
+    // Check the declarations themselves, not just the tests
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  // both entries, as a [jweb] page has them; tests/module-only checks the main entry without
+  // global.d.ts, in a program of its own
+  "include": ["*.d.ts", "tests"],
+  "exclude": ["tests/module-only"]
+}
