@@ -1,6 +1,6 @@
 {
   "name": "@tsln/jweb-types",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Type declarations for window.max, the MaxBridge API of web pages loaded in Max's [jweb] object",
   "license": "MIT",
   "author": "Mateo Murphy",
