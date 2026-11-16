@@ -29,9 +29,35 @@ function id_of(path: LiveAPIPath) {
 // come to mean another object, as when a track is moved.
 const ROOTS = ["live_set", "live_app", "this_device"];
 
-// A LiveAPI object is not given back while the script runs, even when nothing refers to it
-// any more, and each one makes the Live API slower. So the LiveObjects made for the same
-// Live object share one, kept here by the object's id, or by its path for a root.
+// Every LiveAPI object this module makes, never let go. A LiveAPI object that nothing refers
+// to any more is freed by the garbage collector, and freeing one can crash Max: in the Max
+// editor it talks to Live over IPC, and Max delivers pending messages while it waits. When one
+// of those reaches a [v8] during the garbage collection, V8 aborts ("Invoke in
+// DisallowJavascriptExecutionScope"). Seen in Max 9.2.1 as Live's editor, 2026-11-15.
+const made = new Set<LiveAPI>();
+
+// What the callback of an observing LiveAPI object calls, until the observation stops. The
+// LiveAPI object is kept for good (see `made`), and with it the callback it was made with, so
+// that callback only forwards to this, and unobserve() lets go of what it forwards to.
+interface Forward {
+  notify: ((message: any[]) => void) | null;
+}
+
+// Made out here, as a closure keeps every variable of the scope it was made in that any
+// closure made there uses: made inside observe(), it would keep observe()'s `callback`
+function forwarder(forward: Forward) {
+  return (message: any[]) => forward.notify?.(message);
+}
+
+function make_api(callback: ((message: any[]) => void) | null, path: LiveAPIPath) {
+  const api = new LiveAPI(callback, path);
+  made.add(api);
+  return api;
+}
+
+// Each LiveAPI object makes the Live API slower for as long as the script runs (see `made`).
+// So the LiveObjects made for the same Live object share one, kept here by the object's id,
+// or by its path for a root.
 const shared = new Map<number | string, LiveAPI>();
 
 // the class of the Live object each LiveAPI object refers to, which an object keeps
@@ -112,11 +138,13 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
   private live_api: LiveAPI | null = null;
   private made_from: LiveAPIPath;
 
-  // Whether `api` was made with a callback, and so can observe; what that callback calls
-  // while it does; and what observe() returned for each member, to tell observations apart
+  // Whether `api` was made with a callback, and so can observe; what that callback forwards
+  // to while it does; and what observe() returned for each member, to tell observations apart
   private own_observes = false;
-  private own_notify: ((message: any[]) => void) | null = null;
+  private own_forward: Forward = { notify: null };
   private observations: Record<string, LiveObject.Observer> = {};
+  // what each of the other LiveAPI objects in `observers` forwards to, by member
+  private forwards: Record<string, Forward> = {};
 
   /**
    * The current Live Set (`live_set`), or null if the Live API isn't available.
@@ -194,7 +222,7 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
    */
   get api(): LiveAPI {
     this.live_api ??=
-      shared_for(this.made_from) ?? share(this.made_from, new LiveAPI(null, this.made_from));
+      shared_for(this.made_from) ?? share(this.made_from, make_api(null, this.made_from));
     return this.live_api;
   }
 
@@ -398,7 +426,7 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
 
     // a LiveAPI object can only observe with the callback it was made with
     if (!this.live_api) {
-      this.live_api = new LiveAPI((message) => this.own_notify?.(message), this.made_from);
+      this.live_api = make_api(forwarder(this.own_forward), this.made_from);
       this.own_observes = true;
       share(this.made_from, this.live_api);
     }
@@ -417,13 +445,15 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
 
     let api: LiveAPI;
 
-    if (this.own_observes && !this.own_notify) {
-      this.own_notify = notify;
+    if (this.own_observes && !this.own_forward.notify) {
+      this.own_forward.notify = notify;
       api = this.live_api;
     } else {
       // refer to the object by id: it was just checked to exist, whereas the path is
       // quoted and may not be valid yet while Live is still loading
-      api = new LiveAPI(notify, ["id", this.live_api.id]);
+      const forward: Forward = { notify };
+      api = make_api(forwarder(forward), ["id", this.live_api.id]);
+      this.forwards[property] = forward;
     }
 
     api.property = property;
@@ -463,9 +493,15 @@ class LiveObjectBase<C extends Lom.ClassName = Lom.ClassName> {
     delete this.observers[property];
     delete this.observations[property];
 
+    const forward = this.forwards[property];
+    if (forward) {
+      forward.notify = null;
+      delete this.forwards[property];
+    }
+
     // `api` is free to observe another member
     if (observer === this.live_api) {
-      this.own_notify = null;
+      this.own_forward.notify = null;
     }
   }
 }

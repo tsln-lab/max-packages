@@ -41,8 +41,11 @@ A `LiveAPI` object is the expensive part of reaching Live from JavaScript. Measu
 - Making a `LiveAPI` object takes 0.4 to 0.8 ms.
 - Every `LiveAPI` object made adds to the cost of every later call to the Live API, by about
   6 µs for each 1000 objects, and more than that for calls from JavaScript.
-- A `LiveAPI` object is not given back when nothing refers to it any more. It stays until the
-  script is reloaded or the device removed.
+- Letting a `LiveAPI` object go doesn't give that cost back. Worse, the garbage collector
+  may then free it, and that can crash Max: in the Max editor, freeing one talks to Live over
+  IPC, Max delivers pending messages while it waits, and if one reaches a `[v8]` during the
+  collection V8 aborts ("Invoke in DisallowJavascriptExecutionScope"). So every `LiveAPI`
+  object a `LiveObject` makes is kept for as long as the script runs.
 
 So what counts is how many `LiveAPI` objects a script makes while it runs, and a `LiveObject`
 makes as few as it can:

@@ -29,6 +29,8 @@ const SET = {
 };
 
 let made = 0; // LiveAPI objects
+let freed = 0; // LiveAPI objects the garbage collector freed, which can crash Max
+const collected = new FinalizationRegistry(() => freed++);
 let asked_type = 0; // times Live was asked for the class of an object
 const observing = new Set();
 
@@ -42,6 +44,7 @@ function find(target) {
 globalThis.LiveAPI = class {
   constructor(callback, target) {
     made++;
+    collected.register(this, null);
     this.callback = callback;
     this.object = SET[find(target)];
     this.found = find(target);
@@ -273,4 +276,46 @@ assert.equal(counting(() => LiveObject.app()).made, 1);
   assert.equal(observing.size, 0);
 }
 
-console.log("live-object: all assertions passed");
+// no LiveAPI object is ever freed by the garbage collector, even when nothing refers to the
+// LiveObjects that made it: one made from a path, lookups that found nothing, one that observed
+(async () => {
+  (() => {
+    new LiveObject("live_set tracks 4").get("name");
+    LiveObject.at("live_set tracks 99");
+    LiveObject.app();
+    const pad = new LiveObject(["id", 6]);
+    pad.get("name");
+    pad.observe("mute", () => {});
+    pad.unobserve("mute");
+  })();
+
+  // but the callback of an observation that has stopped is let go of, whether it observed
+  // with the object's own LiveAPI object (fresh) or with another one (used)
+  let callbacks_freed = 0;
+  const callbacks = new FinalizationRegistry(() => callbacks_freed++);
+  (() => {
+    const fresh = new LiveObject(["id", 5]);
+    const used = new LiveObject(["id", 4]);
+    used.get("name");
+    for (const [object, name] of [
+      [fresh, "name"],
+      [used, "name"],
+      [used, "mute"],
+    ]) {
+      const callback = () => {};
+      callbacks.register(callback, null);
+      object.observe(name, callback);
+      object.unobserve(name);
+    }
+    assert.equal(fresh.observers.name, undefined);
+  })();
+
+  for (let i = 0; i < 5; i++) {
+    globalThis.gc();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.equal(freed, 0);
+  assert.equal(callbacks_freed, 3);
+
+  console.log("live-object: all assertions passed");
+})();
