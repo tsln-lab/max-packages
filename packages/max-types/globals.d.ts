@@ -123,7 +123,12 @@ interface ScriptHandlers {
  * Lists the top-level functions Max calls on a script, so TypeScript counts them
  * as used and checks built-in handlers against ScriptHandlers. Any other key is
  * treated as a custom message handler. Export it from the script; type-only
- * exports are erased, so nothing is emitted:
+ * exports are erased, so nothing is emitted.
+ *
+ * Each key must be the name of the function it points at: Max calls the function
+ * named after the message, so `pan: typeof set_pan` type-checks but a `pan`
+ * message finds no function. Types can't see function names, so this isn't
+ * checked here; a source check over the `Handlers<{...}>` lists can catch it.
  *
  * ```ts
  * function bang() {}
