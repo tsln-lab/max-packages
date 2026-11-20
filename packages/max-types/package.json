@@ -31,7 +31,8 @@
     "access": "public"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "generate:colors": "node tools/generate-theme-colors.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2"

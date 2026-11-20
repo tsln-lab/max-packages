@@ -559,10 +559,11 @@ declare class Max {
   /** The available attributes of the Max global object. */
   getattrnames(): string[];
   /**
-   * Get the value of the named dynamic color in the current theme.
+   * Get the value of the named dynamic color in the current theme. Names Max's themes define
+   * autocomplete (see ThemeColors); any other string is still accepted.
    * @returns the RGBA color as an array of four numbers between 0 and 1
    */
-  getcolor(name: string): [number, number, number, number];
+  getcolor(name: ThemeColor | (string & {})): [number, number, number, number];
   /** Get a Dict containing the reference page information for the named Max class. */
   getrefdict(classname: string): Dict;
   /** Send a message to the Max global object. */

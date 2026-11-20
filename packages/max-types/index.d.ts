@@ -8,6 +8,7 @@
 // globals, and the built-in modules (http, net, ...) share theirs with Node's.
 
 /// <reference path="globals.d.ts" />
+/// <reference path="theme-colors.d.ts" />
 /// <reference path="patcher.d.ts" />
 /// <reference path="live.d.ts" />
 /// <reference path="data.d.ts" />
